@@ -2,7 +2,10 @@ RPCS3 w/ Groovy MiSTer NLC support
 =====
 Fork Notes
 
+This fork of RPCS3 was created to be used in conjunction with Groovy MiSTer NLC.
+Please pair this with the latest release from: https://github.com/verbst/Groovy_MiSTer/releases
 
+MiSTer related settings, including your connection, can be set in the dedicated MiSTer settings page.
 <img width="1635" height="862" alt="rpcs3_1" src="https://github.com/user-attachments/assets/0deb22be-6178-4c9a-b80f-33592457535f" />
 
 ## Graphics
@@ -11,14 +14,14 @@ It is recommended to render directly to 480p and 4:3 aspect ratio.
 <img width="860" height="728" alt="rpcs3_2" src="https://github.com/user-attachments/assets/b5f98af0-1610-4eef-8085-85e50fbb57a2" />
 
 However, some PS3 titles do not support 480p directly and will add large black borders. For these titles it is recommended to render to 720p, and downres via the MiSTer settings page "Output resolution".
+<img width="810" height="240" alt="rpcs3_4" src="https://github.com/user-attachments/assets/573f873e-3c27-4cff-983a-cd8f59532f50" />
 
-<img width="947" height="950" alt="rpcs3_3" src="https://github.com/user-attachments/assets/6ee7ba75-2eae-4a99-baec-4e44603ae634" />
 
 
 ## Input
 
 Use inputs directly from your MiSTer, or locally. Full dualshock support (analog/rumble)
-<img width="810" height="240" alt="rpcs3_4" src="https://github.com/user-attachments/assets/573f873e-3c27-4cff-983a-cd8f59532f50" />
+<img width="947" height="950" alt="rpcs3_3" src="https://github.com/user-attachments/assets/6ee7ba75-2eae-4a99-baec-4e44603ae634" />
 
 
 =====

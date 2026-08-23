@@ -169,11 +169,11 @@ bool cfg_input::load(const std::string& title_id, const std::string& config_file
 		}
 	}
 
-	// Add keyboard by default
-	input_log.notice("Input configuration empty. Adding default keyboard pad handler");
-	player[0]->handler.from_string(fmt::format("%s", pad_handler::keyboard));
-	player[0]->device.from_string(pad::keyboard_device_name.data());
-	player[0]->buddy_device.from_string(""sv);
+	// No config on disk: from_default() above already applied cfg_input's defaults
+	// (P1/P2 GroovyMiSTer, P3 keyboard), so nothing needs forcing here. Upstream
+	// instead hardcoded a keyboard onto player 1 at this point, which would stomp
+	// the MiSTer default on every empty/missing-config load.
+	input_log.notice("Input configuration empty. Using default pad handlers");
 
 	return false;
 }

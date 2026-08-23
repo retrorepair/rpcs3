@@ -595,52 +595,97 @@ std::array<std::vector<std::set<u32>>, PadHandlerBase::button::button_count> Pad
 	if (!device || !cfg)
 		return mapping;
 
-	mapping[button::up]       = find_key_combos(button_list, cfg->up);
-	mapping[button::down]     = find_key_combos(button_list, cfg->down);
-	mapping[button::left]     = find_key_combos(button_list, cfg->left);
-	mapping[button::right]    = find_key_combos(button_list, cfg->right);
-	mapping[button::cross]    = find_key_combos(button_list, cfg->cross);
-	mapping[button::square]   = find_key_combos(button_list, cfg->square);
-	mapping[button::circle]   = find_key_combos(button_list, cfg->circle);
-	mapping[button::triangle] = find_key_combos(button_list, cfg->triangle);
-	mapping[button::start]    = find_key_combos(button_list, cfg->start);
-	mapping[button::select]   = find_key_combos(button_list, cfg->select);
-	mapping[button::l1]       = find_key_combos(button_list, cfg->l1);
-	mapping[button::l2]       = find_key_combos(button_list, cfg->l2);
-	mapping[button::l3]       = find_key_combos(button_list, cfg->l3);
-	mapping[button::r1]       = find_key_combos(button_list, cfg->r1);
-	mapping[button::r2]       = find_key_combos(button_list, cfg->r2);
-	mapping[button::r3]       = find_key_combos(button_list, cfg->r3);
-	mapping[button::ls_left]  = find_key_combos(button_list, cfg->ls_left);
-	mapping[button::ls_right] = find_key_combos(button_list, cfg->ls_right);
-	mapping[button::ls_down]  = find_key_combos(button_list, cfg->ls_down);
-	mapping[button::ls_up]    = find_key_combos(button_list, cfg->ls_up);
-	mapping[button::rs_left]  = find_key_combos(button_list, cfg->rs_left);
-	mapping[button::rs_right] = find_key_combos(button_list, cfg->rs_right);
-	mapping[button::rs_down]  = find_key_combos(button_list, cfg->rs_down);
-	mapping[button::rs_up]    = find_key_combos(button_list, cfg->rs_up);
-	mapping[button::ps]       = find_key_combos(button_list, cfg->ps);
+	// find_key_codes resolves a saved profile's entries by exact string match with no
+	// fallback, so a name this handler does not know simply binds to nothing and says
+	// nothing about it. That makes renaming a handler's button_list invisibly break
+	// every profile saved before the rename - it looks like dead hardware, not a stale
+	// config. Collect the unresolvable names and report them once per bind instead.
+	// Only handlers whose profile names all come from button_list reach this function
+	// (evdev and keyboard override bindPadToDevice outright), so a miss here is
+	// unambiguous rather than just "not in this particular map".
+	std::set<std::string> unknown_names;
 
-	mapping[button::skateboard_ir_nose]    = find_key_combos(button_list, cfg->ir_nose);
-	mapping[button::skateboard_ir_tail]    = find_key_combos(button_list, cfg->ir_tail);
-	mapping[button::skateboard_ir_left]    = find_key_combos(button_list, cfg->ir_left);
-	mapping[button::skateboard_ir_right]   = find_key_combos(button_list, cfg->ir_right);
-	mapping[button::skateboard_tilt_left]  = find_key_combos(button_list, cfg->tilt_left);
-	mapping[button::skateboard_tilt_right] = find_key_combos(button_list, cfg->tilt_right);
+	const auto map_button = [this, &unknown_names](const std::string& cfg_string)
+	{
+		for (const pad::combo& combo : cfg_pad::get_combos(cfg_string))
+		{
+			for (const std::string& button_name : combo.buttons())
+			{
+				// An empty name is the deliberate "leave this unbound" convention.
+				if (button_name.empty())
+					continue;
+
+				if (std::none_of(button_list.cbegin(), button_list.cend(),
+					[&button_name](const auto& entry) { return entry.second == button_name; }))
+				{
+					unknown_names.insert(button_name);
+				}
+			}
+		}
+
+		return find_key_combos(button_list, cfg_string);
+	};
+
+	mapping[button::up]       = map_button(cfg->up);
+	mapping[button::down]     = map_button(cfg->down);
+	mapping[button::left]     = map_button(cfg->left);
+	mapping[button::right]    = map_button(cfg->right);
+	mapping[button::cross]    = map_button(cfg->cross);
+	mapping[button::square]   = map_button(cfg->square);
+	mapping[button::circle]   = map_button(cfg->circle);
+	mapping[button::triangle] = map_button(cfg->triangle);
+	mapping[button::start]    = map_button(cfg->start);
+	mapping[button::select]   = map_button(cfg->select);
+	mapping[button::l1]       = map_button(cfg->l1);
+	mapping[button::l2]       = map_button(cfg->l2);
+	mapping[button::l3]       = map_button(cfg->l3);
+	mapping[button::r1]       = map_button(cfg->r1);
+	mapping[button::r2]       = map_button(cfg->r2);
+	mapping[button::r3]       = map_button(cfg->r3);
+	mapping[button::ls_left]  = map_button(cfg->ls_left);
+	mapping[button::ls_right] = map_button(cfg->ls_right);
+	mapping[button::ls_down]  = map_button(cfg->ls_down);
+	mapping[button::ls_up]    = map_button(cfg->ls_up);
+	mapping[button::rs_left]  = map_button(cfg->rs_left);
+	mapping[button::rs_right] = map_button(cfg->rs_right);
+	mapping[button::rs_down]  = map_button(cfg->rs_down);
+	mapping[button::rs_up]    = map_button(cfg->rs_up);
+	mapping[button::ps]       = map_button(cfg->ps);
+
+	mapping[button::skateboard_ir_nose]    = map_button(cfg->ir_nose);
+	mapping[button::skateboard_ir_tail]    = map_button(cfg->ir_tail);
+	mapping[button::skateboard_ir_left]    = map_button(cfg->ir_left);
+	mapping[button::skateboard_ir_right]   = map_button(cfg->ir_right);
+	mapping[button::skateboard_tilt_left]  = map_button(cfg->tilt_left);
+	mapping[button::skateboard_tilt_right] = map_button(cfg->tilt_right);
 
 	if (b_has_pressure_intensity_button)
 	{
-		mapping[button::pressure_intensity_button] = find_key_combos(button_list, cfg->pressure_intensity_button);
+		mapping[button::pressure_intensity_button] = map_button(cfg->pressure_intensity_button);
 	}
 
 	if (b_has_analog_limiter_button)
 	{
-		mapping[button::analog_limiter_button] = find_key_combos(button_list, cfg->analog_limiter_button);
+		mapping[button::analog_limiter_button] = map_button(cfg->analog_limiter_button);
 	}
 
 	if (b_has_orientation)
 	{
-		mapping[button::orientation_reset_button] = find_key_combos(button_list, cfg->orientation_reset_button);
+		mapping[button::orientation_reset_button] = map_button(cfg->orientation_reset_button);
+	}
+
+	if (!unknown_names.empty())
+	{
+		std::string names;
+		for (const std::string& name : unknown_names)
+		{
+			if (!names.empty()) names += "', '";
+			names += name;
+		}
+
+		input_log.warning("%s: player %d has %d button name(s) this handler does not know, so they are unbound: '%s'. "
+			"The profile was most likely saved by an older build - press Default, then Save, in the pad settings to rebuild it.",
+			m_type, device->player_id, unknown_names.size(), names);
 	}
 
 	return mapping;

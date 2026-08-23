@@ -767,3 +767,139 @@ void fmt_class_string<vsync_mode>::format(std::string& out, u64 arg)
 		return unknown;
 	});
 }
+
+template <>
+void fmt_class_string<groovy_mister_host_display>::format(std::string& out, u64 arg)
+{
+	format_enum(out, arg, [](groovy_mister_host_display value)
+	{
+		switch (value)
+		{
+		case groovy_mister_host_display::parallel: return "Parallel";
+		case groovy_mister_host_display::headless: return "Headless";
+		}
+
+		return unknown;
+	});
+}
+
+template <>
+void fmt_class_string<groovy_mister_lz4>::format(std::string& out, u64 arg)
+{
+	format_enum(out, arg, [](groovy_mister_lz4 value)
+	{
+		switch (value)
+		{
+		case groovy_mister_lz4::off:          return "Off";
+		case groovy_mister_lz4::lz4:          return "LZ4";
+		case groovy_mister_lz4::lz4_hc:       return "LZ4 HC";
+		case groovy_mister_lz4::nlc_tiled:    return "NLC";
+		}
+
+		return unknown;
+	});
+}
+
+template <>
+void fmt_class_string<groovy_mister_nlc_pack>::format(std::string& out, u64 arg)
+{
+	format_enum(out, arg, [](groovy_mister_nlc_pack value)
+	{
+		switch (value)
+		{
+		case groovy_mister_nlc_pack::tiled: return "Tiled";
+		case groovy_mister_nlc_pack::rice:  return "Rice";
+		}
+
+		return unknown;
+	});
+}
+
+template <>
+void fmt_class_string<groovy_mister_output_res>::format(std::string& out, u64 arg)
+{
+	format_enum(out, arg, [](groovy_mister_output_res value)
+	{
+		switch (value)
+		{
+		case groovy_mister_output_res::_auto:       return "Auto (from PS3)";
+		case groovy_mister_output_res::_240p_4_3:   return "240p 4:3 (320x240)";
+		case groovy_mister_output_res::_480p_4_3:   return "480p 4:3 (640x480)";
+		case groovy_mister_output_res::_480p_ntsc:  return "480p NTSC (720x480)";
+		case groovy_mister_output_res::_576p_4_3:   return "576p 4:3 (768x576)";
+		case groovy_mister_output_res::_576p_pal:   return "576p PAL (720x576)";
+		case groovy_mister_output_res::_480p_16_9:  return "480p 16:9 (853x480)";
+		case groovy_mister_output_res::_720p_16_9:  return "720p 16:9 (1280x720)";
+		}
+
+		return unknown;
+	});
+}
+
+template <>
+void fmt_class_string<groovy_mister_rgb_mode>::format(std::string& out, u64 arg)
+{
+	format_enum(out, arg, [](groovy_mister_rgb_mode value)
+	{
+		switch (value)
+		{
+		case groovy_mister_rgb_mode::rgb888:  return "RGB888";
+		case groovy_mister_rgb_mode::rgba888: return "RGBA888";
+		case groovy_mister_rgb_mode::rgb565:  return "RGB565";
+		}
+
+		return unknown;
+	});
+}
+
+// The next three deliberately format as bare numbers: they replace plain integer
+// settings, and keeping the stored value numeric means existing configs keep
+// working and the YAML stays readable. The friendly labels live in
+// emu_settings::GetLocalizedSetting, which is display-only.
+template <>
+void fmt_class_string<groovy_mister_mtu>::format(std::string& out, u64 arg)
+{
+	format_enum(out, arg, [](groovy_mister_mtu value)
+	{
+		switch (value)
+		{
+		case groovy_mister_mtu::_1500: return "1500";
+		case groovy_mister_mtu::_3800: return "3800";
+		}
+
+		return unknown;
+	});
+}
+
+template <>
+void fmt_class_string<groovy_mister_near_level>::format(std::string& out, u64 arg)
+{
+	format_enum(out, arg, [](groovy_mister_near_level value)
+	{
+		switch (value)
+		{
+		case groovy_mister_near_level::near_0: return "0";
+		case groovy_mister_near_level::near_1: return "1";
+		case groovy_mister_near_level::near_2: return "2";
+		case groovy_mister_near_level::near_3: return "3";
+		}
+
+		return unknown;
+	});
+}
+
+template <>
+void fmt_class_string<groovy_mister_lib_log>::format(std::string& out, u64 arg)
+{
+	format_enum(out, arg, [](groovy_mister_lib_log value)
+	{
+		switch (value)
+		{
+		case groovy_mister_lib_log::errors: return "0";
+		case groovy_mister_lib_log::pacing: return "1";
+		case groovy_mister_lib_log::trace:  return "2";
+		}
+
+		return unknown;
+	});
+}

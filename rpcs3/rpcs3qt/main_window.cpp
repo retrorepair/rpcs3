@@ -2943,15 +2943,21 @@ void main_window::CreateConnects()
 		dlg->open();
 	};
 
+	// NOTE: these indices must track the tab order in settings_dialog.ui, which
+	// this fork changed — the MiSTer tab sits at index 3 (between Audio and I/O),
+	// so everything from I/O down is shifted by one versus upstream.
+	// settings_dialog.cpp's removeTab constants were updated for that; these were
+	// not, which pointed every entry from I/O down at the wrong tab.
 	connect(ui->confCPUAct,    &QAction::triggered, this, [open_settings]() { open_settings(0); });
 	connect(ui->confGPUAct,    &QAction::triggered, this, [open_settings]() { open_settings(1); });
 	connect(ui->confAudioAct,  &QAction::triggered, this, [open_settings]() { open_settings(2); });
-	connect(ui->confIOAct,     &QAction::triggered, this, [open_settings]() { open_settings(3); });
-	connect(ui->confSystemAct, &QAction::triggered, this, [open_settings]() { open_settings(4); });
-	connect(ui->confNetwrkAct, &QAction::triggered, this, [open_settings]() { open_settings(5); });
-	connect(ui->confAdvAct,    &QAction::triggered, this, [open_settings]() { open_settings(6); });
-	connect(ui->confEmuAct,    &QAction::triggered, this, [open_settings]() { open_settings(7); });
-	connect(ui->confGuiAct,    &QAction::triggered, this, [open_settings]() { open_settings(8); });
+	connect(ui->confMisterAct, &QAction::triggered, this, [open_settings]() { open_settings(3); });
+	connect(ui->confIOAct,     &QAction::triggered, this, [open_settings]() { open_settings(4); });
+	connect(ui->confSystemAct, &QAction::triggered, this, [open_settings]() { open_settings(5); });
+	connect(ui->confNetwrkAct, &QAction::triggered, this, [open_settings]() { open_settings(6); });
+	connect(ui->confAdvAct,    &QAction::triggered, this, [open_settings]() { open_settings(7); });
+	connect(ui->confEmuAct,    &QAction::triggered, this, [open_settings]() { open_settings(8); });
+	connect(ui->confGuiAct,    &QAction::triggered, this, [open_settings]() { open_settings(9); });
 
 	connect(ui->confShortcutsAct, &QAction::triggered, [this]()
 	{

@@ -40,6 +40,10 @@ class GSRender;
 atomic_t<bool> g_user_asked_for_recording = false;
 atomic_t<bool> g_user_asked_for_screenshot = false;
 atomic_t<bool> g_user_asked_for_frame_capture = false;
+// Hotkey-driven raw-frame dump for the MiSTer codec corpus. Set by the gs_frame
+// shortcut handler; consumed (cleared) by VKGroovyMisterOutput::record_capture
+// on the RSX thread, which signals the sender thread to start the dump.
+atomic_t<bool> g_user_asked_for_mister_frame_dump = false;
 atomic_t<bool> g_disable_frame_limit = false;
 rsx::frame_trace_data frame_debug;
 rsx::frame_capture_data frame_capture;

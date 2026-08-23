@@ -11,6 +11,7 @@ enum class pad_handler
 	dualsense,
 	skateboard,
 	move,
+	groovy_mister,
 #ifdef _WIN32
 	xinput,
 	mm,

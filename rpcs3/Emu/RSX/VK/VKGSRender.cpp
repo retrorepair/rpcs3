@@ -1263,10 +1263,13 @@ void VKGSRender::on_init_thread()
 			m_shaders_cache->load(&dlg);
 		}
 	}
+
+	m_groovy_mister_output.init(*m_device);
 }
 
 void VKGSRender::on_exit()
 {
+	m_groovy_mister_output.shutdown();
 	GSRender::on_exit();
 	vk::destroy_pipe_compiler(); // Ensure no pending shaders being compiled
 	zcull_ctrl.release();

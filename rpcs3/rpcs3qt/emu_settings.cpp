@@ -1533,6 +1533,75 @@ QString emu_settings::GetLocalizedSetting(const QString& original, emu_settings_
 		case vsync_mode::adaptive: return tr("Adaptive", "VSync Mode");
 		case vsync_mode::full: return tr("Full", "VSync Mode");
 		}
+		break;
+	case emu_settings_type::MisterHostDisplay:
+		switch (static_cast<groovy_mister_host_display>(index))
+		{
+		case groovy_mister_host_display::parallel: return tr("Parallel", "MiSTer Host Display");
+		case groovy_mister_host_display::headless: return tr("Headless", "MiSTer Host Display");
+		}
+		break;
+	case emu_settings_type::MisterOutputResolution:
+		switch (static_cast<groovy_mister_output_res>(index))
+		{
+		case groovy_mister_output_res::_auto:       return tr("Auto (from PS3)",      "MiSTer Output Resolution");
+		case groovy_mister_output_res::_240p_4_3:   return tr("240p 4:3 (320x240)",   "MiSTer Output Resolution");
+		case groovy_mister_output_res::_480p_4_3:   return tr("480p 4:3 (640x480)",   "MiSTer Output Resolution");
+		case groovy_mister_output_res::_480p_ntsc:  return tr("480p NTSC (720x480)",  "MiSTer Output Resolution");
+		case groovy_mister_output_res::_576p_4_3:   return tr("576p 4:3 (768x576)",   "MiSTer Output Resolution");
+		case groovy_mister_output_res::_576p_pal:   return tr("576p PAL (720x576)",   "MiSTer Output Resolution");
+		case groovy_mister_output_res::_480p_16_9:  return tr("480p 16:9 (853x480)",  "MiSTer Output Resolution");
+		case groovy_mister_output_res::_720p_16_9:  return tr("720p 16:9 (1280x720)", "MiSTer Output Resolution");
+		}
+		break;
+	case emu_settings_type::MisterLz4Mode:
+		switch (static_cast<groovy_mister_lz4>(index))
+		{
+		case groovy_mister_lz4::off:          return tr("Off",     "MiSTer LZ4");
+		case groovy_mister_lz4::lz4:          return tr("LZ4",     "MiSTer LZ4");
+		case groovy_mister_lz4::lz4_hc:       return tr("LZ4 HC",  "MiSTer LZ4");
+		case groovy_mister_lz4::nlc_tiled:    return tr("NLC",     "MiSTer LZ4");
+		}
+		break;
+	case emu_settings_type::MisterNlcPack:
+		switch (static_cast<groovy_mister_nlc_pack>(index))
+		{
+		case groovy_mister_nlc_pack::tiled: return tr("Tiled", "MiSTer NLC Pack");
+		case groovy_mister_nlc_pack::rice:  return tr("Rice",  "MiSTer NLC Pack");
+		}
+		break;
+	case emu_settings_type::MisterRGBMode:
+		switch (static_cast<groovy_mister_rgb_mode>(index))
+		{
+		case groovy_mister_rgb_mode::rgb888:  return tr("RGB888 (24-bit)",  "MiSTer RGB Mode");
+		case groovy_mister_rgb_mode::rgba888: return tr("RGBA888 (32-bit)", "MiSTer RGB Mode");
+		case groovy_mister_rgb_mode::rgb565:  return tr("RGB565 (16-bit)",  "MiSTer RGB Mode");
+		}
+		break;
+	case emu_settings_type::MisterMTU:
+		switch (static_cast<groovy_mister_mtu>(index))
+		{
+		case groovy_mister_mtu::_1500: return tr("1500 (standard)",              "MiSTer MTU");
+		case groovy_mister_mtu::_3800: return tr("3800 (needs OSD Jumbo frames)", "MiSTer MTU");
+		}
+		break;
+	case emu_settings_type::MisterNlcNearLevel:
+		switch (static_cast<groovy_mister_near_level>(index))
+		{
+		case groovy_mister_near_level::near_0: return tr("0 - Lossless",   "MiSTer NEAR");
+		case groovy_mister_near_level::near_1: return tr("1 - Recommended", "MiSTer NEAR");
+		case groovy_mister_near_level::near_2: return tr("2 - Smaller",    "MiSTer NEAR");
+		case groovy_mister_near_level::near_3: return tr("3 - Smallest",   "MiSTer NEAR");
+		}
+		break;
+	case emu_settings_type::MisterLibLogVerbose:
+		switch (static_cast<groovy_mister_lib_log>(index))
+		{
+		case groovy_mister_lib_log::errors: return tr("0 - Errors and handshake", "MiSTer Library Log");
+		case groovy_mister_lib_log::pacing: return tr("1 - Add frame pacing",     "MiSTer Library Log");
+		case groovy_mister_lib_log::trace:  return tr("2 - Full trace",           "MiSTer Library Log");
+		}
+		break;
 	default:
 		break;
 	}

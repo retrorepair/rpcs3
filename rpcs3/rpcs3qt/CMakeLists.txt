@@ -161,6 +161,7 @@ add_library(rpcs3_ui STATIC
     ../Input/ds4_pad_handler.cpp
     ../Input/dualsense_pad_handler.cpp
     ../Input/evdev_joystick_handler.cpp
+    ../Input/groovy_mister_pad_handler.cpp
     ../Input/gui_pad_thread.cpp
     ../Input/hid_pad_handler.cpp
     ../Input/keyboard_pad_handler.cpp

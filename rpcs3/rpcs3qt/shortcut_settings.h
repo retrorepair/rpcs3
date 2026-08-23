@@ -47,6 +47,7 @@ namespace gui
 			gw_volume_up,
 			gw_volume_down,
 			gw_toggle_mouse_gyro,
+			gw_mister_dump_frames,
 
 			count
 		};

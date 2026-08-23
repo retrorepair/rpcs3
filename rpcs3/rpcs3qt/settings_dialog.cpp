@@ -2,6 +2,7 @@
 #include <QCameraDevice>
 #include <QMediaDevices>
 #include <QDialogButtonBox>
+#include <QFileDialog>
 #include <QFontMetrics>
 #include <QPushButton>
 #include <QMessageBox>
@@ -35,6 +36,7 @@
 
 #include "Loader/PSF.h"
 
+#include <algorithm>
 #include <set>
 
 #include "util/sysinfo.hpp"
@@ -45,6 +47,11 @@
 #endif
 
 LOG_CHANNEL(cfg_log, "CFG");
+
+// Defined in Emu/RSX/RSXThread.cpp; edge-triggered request consumed by the
+// GroovyMiSTer sender thread while a game is running with MiSTer output active.
+// Also driven by the gw_mister_dump_frames hotkey (see gs_frame.cpp).
+extern atomic_t<bool> g_user_asked_for_mister_frame_dump;
 
 static std::pair<QString, int> get_data(const QComboBox* box, int index)
 {
@@ -100,26 +107,33 @@ settings_dialog::settings_dialog(std::shared_ptr<gui_settings> gui_settings, std
 	ui->tab_widget_settings->setUsesScrollButtons(false);
 	ui->tab_widget_settings->tabBar()->setObjectName("tab_bar_settings");
 
+	// NOTE: these indices must track the tab order in settings_dialog.ui. The MiSTer
+	// tab sits at index 3 (between Audio and I/O), so everything after it is shifted
+	// by one vs upstream: Debug is 10 (was 9) and GUI is 9 (was 8).
 	if (!m_gui_settings->GetValue(gui::m_showDebugTab).toBool())
 	{
-		ui->tab_widget_settings->removeTab(9);
+		ui->tab_widget_settings->removeTab(10); // Debug
 		ui->audioDump->setVisible(false);
 		ui->audioDump->setChecked(false);
 		m_gui_settings->SetValue(gui::m_showDebugTab, false);
 	}
 	if (game)
 	{
-		ui->tab_widget_settings->removeTab(8);
+		ui->tab_widget_settings->removeTab(9); // GUI
 		ui->buttonBox->button(QDialogButtonBox::StandardButton::Save)->setText(tr("Save custom configuration", "Settings dialog"));
 	}
 
 	// Localized tooltips
 	const Tooltips tooltips;
 
-	// Add description labels
+	// Add description labels. m_description_labels is indexed by TAB INDEX, so the
+	// order here must exactly match the tab order in settings_dialog.ui — the MiSTer
+	// entry has to sit between Audio and I/O or every later tab's hover-description
+	// is off by one.
 	SubscribeDescription(ui->description_cpu);
 	SubscribeDescription(ui->description_gpu);
 	SubscribeDescription(ui->description_audio);
+	SubscribeDescription(ui->description_mister);
 	SubscribeDescription(ui->description_io);
 	SubscribeDescription(ui->description_system);
 	SubscribeDescription(ui->description_network);
@@ -1487,6 +1501,342 @@ settings_dialog::settings_dialog(std::shared_ptr<gui_settings> gui_settings, std
 	{
 		remove_item(ui->psnStatusBox, static_cast<int>(np_psn_status::psn_fake), static_cast<int>(g_cfg.net.psn_status.def));
 	}
+
+	//   __  __ _  _____ _              _______    _
+	//  |  \/  (_)/ ____| |            |__   __|  | |
+	//  | \  / |_| (___ | |_ ___ _ __     | | __ _| |__
+	//  | |\/| | |\___ \| __/ _ \ '__|    | |/ _` | '_ ＼
+	//  | |  | | |____) | ||  __/ |       | | (_| | |_) |
+	//  |_|  |_|_|_____/ \__\___|_|       |_|\__,_|_.__/
+
+	// This tab also exposes its help as a native tooltip, so a description is readable
+	// where the mouse already is, without scrolling down to the panel at the bottom of
+	// the page. Qt only word-wraps a tooltip when the text looks like rich text
+	// (Qt::mightBeRichText), hence the <html> wrapper — without it a ~250 character
+	// string renders as one screen-wide line.
+	const auto mister_tooltip = [this](QObject* object, const QString& text)
+	{
+		SubscribeTooltip(object, text);
+
+		if (QWidget* widget = qobject_cast<QWidget*>(object))
+		{
+			widget->setToolTip(QStringLiteral("<html>%1</html>").arg(text.toHtmlEscaped()));
+		}
+	};
+
+	// Connection
+	m_emu_settings->EnhanceCheckBox(ui->mister_enabled, emu_settings_type::MisterEnabled);
+	mister_tooltip(ui->mister_enabled, tooltips.settings.mister_enabled);
+
+	m_emu_settings->EnhanceLineEdit(ui->mister_host, emu_settings_type::MisterHost);
+	mister_tooltip(ui->mister_host, tooltips.settings.mister_host);
+
+	m_emu_settings->EnhanceComboBox(ui->mister_mtu, emu_settings_type::MisterMTU);
+	mister_tooltip(ui->mister_mtu, tooltips.settings.mister_mtu);
+
+	m_emu_settings->EnhanceCheckBox(ui->mister_keepalive, emu_settings_type::MisterKeepAlive);
+	mister_tooltip(ui->mister_keepalive, tooltips.settings.mister_keepalive);
+
+	m_emu_settings->EnhanceCheckBox(ui->mister_auto_reconnect, emu_settings_type::MisterAutoReconnect);
+	mister_tooltip(ui->mister_auto_reconnect, tooltips.settings.mister_auto_reconnect);
+
+	// Monitor preset. Kept a free-form string in cfg (so any preset a future
+	// switchres adds still round-trips) but presented as a closed dropdown of
+	// the presets switchres actually implements, plus a "Custom…" escape.
+	//
+	// The list is switchres's own, from its shipped switchres.ini — see
+	// 3rdparty/switchres/monitor.cpp (monitor_set_preset) for the implementation
+	// and re-check it whenever switchres is re-vendored: switchres exposes no way
+	// to enumerate these at runtime. An unknown name is NOT an error to switchres,
+	// it silently falls back to generic_15, which is why guessing is unsafe.
+	{
+		const auto add_preset = [this](const char* name) { ui->mister_monitor_preset->addItem(QString::fromLatin1(name), QString::fromLatin1(name)); };
+
+		ui->mister_monitor_preset->addItem(tr("(switchres default)"), QString{});
+
+		// Generic CRT standards
+		add_preset("generic_15"); add_preset("ntsc"); add_preset("pal");
+		// Arcade fixed frequency / multisync
+		add_preset("arcade_15"); add_preset("arcade_15ex"); add_preset("arcade_25"); add_preset("arcade_31");
+		add_preset("arcade_15_25"); add_preset("arcade_15_31"); add_preset("arcade_15_25_31");
+		// VESA GTF
+		add_preset("vesa_480"); add_preset("vesa_600"); add_preset("vesa_768"); add_preset("vesa_1024");
+		// PC 120 Hz
+		add_preset("pc_31_120"); add_preset("pc_70_120");
+		// Hantarex / Wells Gardner / Makvision / Wei-Ya / Nanao / Rodotron
+		add_preset("h9110"); add_preset("polo"); add_preset("pstar");
+		add_preset("k7000"); add_preset("k7131"); add_preset("d9200"); add_preset("d9800"); add_preset("d9400");
+		add_preset("m2929"); add_preset("m3129");
+		add_preset("ms2930"); add_preset("ms929");
+		add_preset("r666b");
+		// Special presets: these draw their ranges from the advanced options
+		// rather than from a built-in table.
+		ui->mister_monitor_preset->addItem(tr("custom (uses crt_range0)"), QStringLiteral("custom"));
+		ui->mister_monitor_preset->addItem(tr("lcd (uses lcd_range)"),     QStringLiteral("lcd"));
+		// Sentinel: anything not in the list above. Selecting it reveals the
+		// free-text field; the stored value is whatever that field holds.
+		ui->mister_monitor_preset->addItem(tr("Custom…"), QStringLiteral("__rpcs3_custom__"));
+
+		const QString current = QString::fromStdString(m_emu_settings->GetSetting(emu_settings_type::MisterMonitorPreset));
+		const int known_index = ui->mister_monitor_preset->findData(current);
+
+		if (known_index >= 0)
+		{
+			ui->mister_monitor_preset->setCurrentIndex(known_index);
+		}
+		else
+		{
+			// A value we do not offer (hand-edited config, or a preset from a
+			// newer switchres). Preserve it verbatim rather than silently
+			// rewriting the user's config.
+			ui->mister_monitor_preset->setCurrentIndex(ui->mister_monitor_preset->count() - 1);
+			ui->mister_monitor_preset_custom->setText(current);
+		}
+
+		const auto save_preset = [this]()
+		{
+			const QString data = ui->mister_monitor_preset->currentData().toString();
+			const bool is_custom = (data == QStringLiteral("__rpcs3_custom__"));
+
+			ui->mister_monitor_preset_custom->setVisible(is_custom);
+
+			// NB: always save the item's DATA, never currentText() — the visible
+			// text is translated, and the old code compared the two and ended up
+			// writing the localized label "(default — generic_15)" into the
+			// config, which switchres then rejected as a preset name.
+			const QString to_save = is_custom ? ui->mister_monitor_preset_custom->text() : data;
+			m_emu_settings->SetSetting(emu_settings_type::MisterMonitorPreset, to_save.toStdString());
+		};
+
+		connect(ui->mister_monitor_preset, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [save_preset](int) { save_preset(); });
+		connect(ui->mister_monitor_preset_custom, &QLineEdit::textChanged, this, [save_preset](const QString&) { save_preset(); });
+		save_preset();
+	}
+	mister_tooltip(ui->mister_monitor_preset, tooltips.settings.mister_monitor_preset);
+	mister_tooltip(ui->mister_monitor_preset_custom, tooltips.settings.mister_monitor_preset);
+
+	m_emu_settings->EnhanceLineEdit(ui->mister_switchres_ini, emu_settings_type::MisterSwitchresIni);
+	mister_tooltip(ui->mister_switchres_ini, tooltips.settings.mister_switchres_ini);
+	connect(ui->mister_switchres_ini_browse, &QPushButton::clicked, this, [this]()
+	{
+		const QString existing = ui->mister_switchres_ini->text();
+		const QString picked = QFileDialog::getOpenFileName(this,
+			tr("Select switchres.ini"),
+			existing,
+			tr("Switchres INI (*.ini);;All files (*)"));
+		if (!picked.isEmpty())
+		{
+			ui->mister_switchres_ini->setText(picked);
+		}
+	});
+
+	m_emu_settings->EnhanceCheckBox(ui->mister_interlaced_fb, emu_settings_type::MisterInterlacedFb);
+	mister_tooltip(ui->mister_interlaced_fb, tooltips.settings.mister_interlaced_fb);
+
+	m_emu_settings->EnhanceCheckBox(ui->mister_crt_safety_limits, emu_settings_type::MisterCrtSafetyLimits);
+	mister_tooltip(ui->mister_crt_safety_limits, tooltips.settings.mister_crt_safety_limits);
+
+	// Output-resolution override: feeds switchres a forced source res so the
+	// MiSTer pipeline downresses to that mode regardless of PS3 avconf.
+	m_emu_settings->EnhanceComboBox(ui->mister_output_resolution, emu_settings_type::MisterOutputResolution);
+	mister_tooltip(ui->mister_output_resolution, tooltips.settings.mister_output_resolution);
+
+	// Stream
+	m_emu_settings->EnhanceComboBox(ui->mister_rgb_mode, emu_settings_type::MisterRGBMode);
+	mister_tooltip(ui->mister_rgb_mode, tooltips.settings.mister_rgb_mode);
+
+	// Compression dropdown. "NLC" is the default; selecting it gates the NLC
+	// pack / NEAR controls below. (Was hand-rolled with literal strings that had
+	// to stay byte-identical to fmt_class_string<groovy_mister_lz4>; EnhanceComboBox
+	// derives them from the enum instead, and writes back an unrecognised stored
+	// value rather than silently displaying NLC over it.)
+	m_emu_settings->EnhanceComboBox(ui->mister_lz4, emu_settings_type::MisterLz4Mode);
+	mister_tooltip(ui->mister_lz4, tooltips.settings.mister_lz4);
+
+	// NLC tuning (only effective when the compression dropdown is set to "NLC";
+	// otherwise these are present but greyed). Pack = entropy front-end
+	// (Tiled/Rice), NEAR = quantization level.
+	m_emu_settings->EnhanceComboBox(ui->mister_nlc_pack, emu_settings_type::MisterNlcPack);
+	mister_tooltip(ui->mister_nlc_pack, tooltips.settings.mister_nlc_pack);
+
+	m_emu_settings->EnhanceComboBox(ui->mister_nlc_near_level, emu_settings_type::MisterNlcNearLevel);
+	mister_tooltip(ui->mister_nlc_near_level, tooltips.settings.mister_nlc_near_level);
+
+	// Vendored library log verbosity. Always meaningful (no dependent-disable
+	// needed). Default 0 keeps the GROOVY channel quiet.
+	m_emu_settings->EnhanceComboBox(ui->mister_lib_log_verbose, emu_settings_type::MisterLibLogVerbose);
+	mister_tooltip(ui->mister_lib_log_verbose, tooltips.settings.mister_lib_log_verbose);
+
+	// Frame dump: configurable count + output directory, plus a "dump now"
+	// button that arms the same request the Ctrl+Shift+D hotkey does.
+	m_emu_settings->EnhanceSpinBox(ui->mister_frame_dump_frames, emu_settings_type::MisterFrameDumpFrames);
+	mister_tooltip(ui->mister_frame_dump_frames, tooltips.settings.mister_frame_dump_frames);
+
+	m_emu_settings->EnhanceLineEdit(ui->mister_frame_dump_dir, emu_settings_type::MisterFrameDumpDir);
+	mister_tooltip(ui->mister_frame_dump_dir, tooltips.settings.mister_frame_dump_dir);
+	connect(ui->mister_frame_dump_dir_browse, &QPushButton::clicked, this, [this]()
+	{
+		const QString existing = ui->mister_frame_dump_dir->text();
+		const QString picked = QFileDialog::getExistingDirectory(this,
+			tr("Select frame dump output directory"),
+			existing);
+		if (!picked.isEmpty())
+		{
+			ui->mister_frame_dump_dir->setText(picked);
+		}
+	});
+
+	mister_tooltip(ui->mister_frame_dump_now, tooltips.settings.mister_frame_dump_now);
+	connect(ui->mister_frame_dump_now, &QPushButton::clicked, this, [this]()
+	{
+		// Apply the just-edited count/dir to the live config so a mid-session
+		// click honors current values, then arm the dump. Only consumed while a
+		// game is running with MiSTer output active; otherwise a harmless no-op.
+		g_cfg.groovy_mister.frame_dump_frames.set(ui->mister_frame_dump_frames->value());
+		g_cfg.groovy_mister.frame_dump_dir.from_string(ui->mister_frame_dump_dir->text().toStdString());
+		g_user_asked_for_mister_frame_dump = true;
+	});
+
+	// Dependent enable: the NLC tuning is only meaningful when the codec is
+	// set to NLC. Drive it off the compression-combo currentIndexChanged signal.
+	const auto sync_compression_dependents = [this]()
+	{
+		// EnhanceComboBox stores itemData as a {value, index} QVariantList, not a
+		// bare string — element 0 is the config value ("NLC", "LZ4", ...).
+		const QVariantList data = ui->mister_lz4->currentData().toList();
+		const QString current = data.isEmpty() ? QString{} : data[0].toString();
+		const bool is_nlc = (current == QStringLiteral("NLC"));
+		ui->mister_nlc_pack_label->setEnabled(is_nlc);
+		ui->mister_nlc_pack->setEnabled(is_nlc);
+		ui->mister_nlc_near_level_label->setEnabled(is_nlc);
+		ui->mister_nlc_near_level->setEnabled(is_nlc);
+	};
+	connect(ui->mister_lz4, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [sync_compression_dependents](int) { sync_compression_dependents(); });
+	sync_compression_dependents();
+
+	// Frame delay (advanced). Defaults reproduce today's behaviour exactly.
+	m_emu_settings->EnhanceSpinBox(ui->mister_frame_delay_line, emu_settings_type::MisterFrameDelayLine);
+	mister_tooltip(ui->mister_frame_delay_line, tooltips.settings.mister_frame_delay_line);
+
+	m_emu_settings->EnhanceSpinBox(ui->mister_frame_delay_margin, emu_settings_type::MisterFrameDelayMargin);
+	mister_tooltip(ui->mister_frame_delay_margin, tooltips.settings.mister_frame_delay_margin);
+
+	// Margin only means anything in auto mode (line 0).
+	const auto sync_frame_delay_dependents = [this]()
+	{
+		const bool is_auto = (ui->mister_frame_delay_line->value() == 0);
+		ui->mister_frame_delay_margin_label->setEnabled(is_auto);
+		ui->mister_frame_delay_margin->setEnabled(is_auto);
+	};
+	connect(ui->mister_frame_delay_line, &QSpinBox::valueChanged, this, [sync_frame_delay_dependents](int) { sync_frame_delay_dependents(); });
+	sync_frame_delay_dependents();
+
+	// ---- Advanced switchres overrides -----------------------------------
+	// Every one of these is passed verbatim to switchres's own sr_set_option()
+	// under the option name it is named after; BLANK means we never call it, so
+	// switchres's own default stands and a default config behaves exactly like a
+	// build without this group. Value syntax is switchres's — the tooltips quote
+	// its shipped switchres.ini.
+	{
+		const std::vector<std::pair<QLineEdit*, emu_settings_type>> sr_fields =
+		{
+			{ ui->mister_sr_user_mode,               emu_settings_type::MisterSrUserMode },
+			{ ui->mister_sr_crt_range0,              emu_settings_type::MisterSrCrtRange0 },
+			{ ui->mister_sr_lcd_range,               emu_settings_type::MisterSrLcdRange },
+			{ ui->mister_sr_modeline,                emu_settings_type::MisterSrModeline },
+			{ ui->mister_sr_interlace,               emu_settings_type::MisterSrInterlace },
+			{ ui->mister_sr_doublescan,              emu_settings_type::MisterSrDoublescan },
+			{ ui->mister_sr_interlace_force_even,    emu_settings_type::MisterSrInterlaceForceEven },
+			{ ui->mister_sr_dotclock_min,            emu_settings_type::MisterSrDotclockMin },
+			{ ui->mister_sr_sync_refresh_tolerance,  emu_settings_type::MisterSrSyncRefreshTolerance },
+			{ ui->mister_sr_super_width,             emu_settings_type::MisterSrSuperWidth },
+			{ ui->mister_sr_aspect,                  emu_settings_type::MisterSrAspect },
+			{ ui->mister_sr_h_size,                  emu_settings_type::MisterSrHSize },
+			{ ui->mister_sr_h_shift,                 emu_settings_type::MisterSrHShift },
+			{ ui->mister_sr_v_shift,                 emu_settings_type::MisterSrVShift },
+			{ ui->mister_sr_v_shift_correct,         emu_settings_type::MisterSrVShiftCorrect },
+			{ ui->mister_sr_pixel_precision,         emu_settings_type::MisterSrPixelPrecision },
+			{ ui->mister_sr_scale_proportional,      emu_settings_type::MisterSrScaleProportional },
+		};
+
+		for (const auto& [widget, type] : sr_fields)
+		{
+			m_emu_settings->EnhanceLineEdit(widget, type);
+		}
+
+		mister_tooltip(ui->mister_sr_user_mode,              tooltips.settings.mister_sr_user_mode);
+		mister_tooltip(ui->mister_sr_crt_range0,             tooltips.settings.mister_sr_crt_range0);
+		mister_tooltip(ui->mister_sr_lcd_range,              tooltips.settings.mister_sr_lcd_range);
+		mister_tooltip(ui->mister_sr_modeline,               tooltips.settings.mister_sr_modeline);
+		mister_tooltip(ui->mister_sr_interlace,              tooltips.settings.mister_sr_interlace);
+		mister_tooltip(ui->mister_sr_doublescan,             tooltips.settings.mister_sr_doublescan);
+		mister_tooltip(ui->mister_sr_interlace_force_even,   tooltips.settings.mister_sr_interlace_force_even);
+		mister_tooltip(ui->mister_sr_dotclock_min,           tooltips.settings.mister_sr_dotclock_min);
+		mister_tooltip(ui->mister_sr_sync_refresh_tolerance, tooltips.settings.mister_sr_sync_refresh_tolerance);
+		mister_tooltip(ui->mister_sr_super_width,            tooltips.settings.mister_sr_super_width);
+		mister_tooltip(ui->mister_sr_aspect,                 tooltips.settings.mister_sr_aspect);
+		mister_tooltip(ui->mister_sr_h_size,                 tooltips.settings.mister_sr_h_size);
+		mister_tooltip(ui->mister_sr_h_shift,                tooltips.settings.mister_sr_h_shift);
+		mister_tooltip(ui->mister_sr_v_shift,                tooltips.settings.mister_sr_v_shift);
+		mister_tooltip(ui->mister_sr_v_shift_correct,        tooltips.settings.mister_sr_v_shift_correct);
+		mister_tooltip(ui->mister_sr_pixel_precision,        tooltips.settings.mister_sr_pixel_precision);
+		mister_tooltip(ui->mister_sr_scale_proportional,     tooltips.settings.mister_sr_scale_proportional);
+
+		// One click back to "everything is switchres's default".
+		connect(ui->mister_sr_reset, &QPushButton::clicked, this, [sr_fields]()
+		{
+			for (const auto& field : sr_fields)
+			{
+				field.first->clear();   // textChanged -> EnhanceLineEdit writes "" back
+			}
+		});
+		mister_tooltip(ui->mister_sr_reset, tooltips.settings.mister_sr_reset);
+
+		// Collapsible: 17 override fields are noise for anyone who isn't hand-tuning a
+		// monitor, so the section starts closed and only its header costs any height.
+		// It opens by itself when a value is already set, so a saved override can never
+		// hide behind a collapsed section.
+		// A QCheckBox, not a QToolButton: every shipped theme sets
+		// QToolButton { min-width: 0.063em; width: auto; }, and once a stylesheet
+		// touches a class Qt hands sizing to QStyleSheetStyle, whose tool-button path
+		// ignores the text width for an arrow-type button — the label elided to ".."
+		// and the hit target shrank to the arrow. QCheckBox is untouched by the themes.
+		const auto sync_sr_toggle = [this](bool expanded)
+		{
+			ui->mister_sr_contents->setVisible(expanded);
+		};
+		connect(ui->mister_sr_toggle, &QCheckBox::toggled, this, sync_sr_toggle);
+
+		// EnhanceLineEdit above has already loaded the saved values into the fields.
+		const bool any_override_set = std::any_of(sr_fields.cbegin(), sr_fields.cend(),
+			[](const auto& field) { return !field.first->text().isEmpty(); });
+
+		ui->mister_sr_toggle->setChecked(any_override_set);
+		sync_sr_toggle(any_override_set); // setChecked() emits nothing when it's already false
+	}
+
+	// Audio
+	m_emu_settings->EnhanceCheckBox(ui->mister_tap_audio, emu_settings_type::MisterTapAudio);
+	mister_tooltip(ui->mister_tap_audio, tooltips.settings.mister_tap_audio);
+
+	// Host display while MiSTer is active
+	m_emu_settings->EnhanceComboBox(ui->mister_host_display, emu_settings_type::MisterHostDisplay);
+	mister_tooltip(ui->mister_host_display, tooltips.settings.mister_host_display);
+
+	// Master enable → enables/disables every child control on the tab.
+	const auto sync_mister_enabled = [this]()
+	{
+		const bool on = ui->mister_enabled->isChecked();
+		ui->gb_mister_connection->setEnabled(on);
+		ui->gb_mister_modeline->setEnabled(on);
+		ui->gb_mister_advanced_sr->setEnabled(on);
+		ui->gb_mister_stream->setEnabled(on);
+		ui->gb_mister_audio->setEnabled(on);
+		ui->gb_mister_host_display->setEnabled(on);
+		ui->gb_mister_diagnostics->setEnabled(on);
+	};
+	connect(ui->mister_enabled, &QCheckBox::toggled, this, sync_mister_enabled);
+	sync_mister_enabled();
 
 	//                _                               _   _______    _
 	//       /\      | |                             | | |__   __|  | |

@@ -207,6 +207,95 @@ enum class video_aspect
 	_16_9,
 };
 
+enum class groovy_mister_host_display
+{
+	parallel, // host window continues presenting alongside MiSTer output
+	headless, // host window present is skipped, MiSTer is the only output
+};
+
+enum class groovy_mister_lz4
+{
+	off,
+	lz4,
+	lz4_hc,
+	// NLC near-lossless codec (wire format v2) — the default. The entropy
+	// front-end (TILED / RICE) and quantization are separate knobs:
+	// groovy_mister.nlc_pack / nlc_near_level. Selecting NLC changes CMD_INIT
+	// byte[1] semantics — requires a core with NLC v2 decode support; older
+	// cores treat any codec value >1 as raw (safe fallback).
+	nlc_tiled,
+};
+
+// NLC entropy front-end (CMD_INIT byte[1] bit 7). Rides the same CMD_INIT as the
+// codec, so it is fixed for the session.
+enum class groovy_mister_nlc_pack
+{
+	// Block-adaptive bit widths. Better on flat / 2D content (Rice has a
+	// 1-bit-per-sample floor). Works on any NLC-capable core.
+	tiled,
+	// Golomb-Rice entropy coding. Better on photographic / 3D content — this is
+	// what brings heavy 3D under the core's ~38 MB/s ingest ceiling.
+	// REQUIRES a core with the Rice decoder (the rbf_rice_r3 kit): an older core
+	// ignores bit 7 and would misparse Rice bytes as TILED (garbage picture).
+	rice,
+};
+
+// MiSTer output-resolution override. "Auto" feeds the PS3 avconf
+// (resolution_x/y) to switchres as today. Any other value forces the
+// MiSTer modeline + downscale to that res — useful for titles that
+// render shrunken inside their advertised mode (e.g. BlazBlue Calamity
+// Trigger at 480p): run RPCS3 at 720p so the framebuffer fills, then
+// the MiSTer pipeline downresses to the chosen output. Refresh
+// (NTSC/PAL) is still inferred from avconf.resolution_id.
+enum class groovy_mister_output_res
+{
+	_auto,         // use PS3 avconf as today
+	_240p_4_3,     // 320x240, 4:3 (15kHz arcade)
+	_480p_4_3,     // 640x480, 4:3 (15kHz arcade or 31kHz VGA)
+	_480p_ntsc,    // 720x480, NTSC (anamorphic 3:2 pixel grid)
+	_576p_4_3,     // 768x576, 4:3 (PAL square pixel)
+	_576p_pal,     // 720x576, PAL (anamorphic)
+	_480p_16_9,    // 853x480, 16:9 square pixel
+	_720p_16_9,    // 1280x720, 16:9
+};
+
+// Wire pixel format (CMD_INIT byte[4]). Fixed for the session.
+enum class groovy_mister_rgb_mode
+{
+	rgb888,   // 3 B/px — the reference format
+	rgba888,  // 4 B/px — alpha is carried but never displayed; here for completeness
+	rgb565,   // 2 B/px — a third fewer raw bytes at the cost of banding
+};
+
+// MTU. Only two values are meaningful to the core; 3800 additionally requires
+// OSD Server -> Jumbo frames = On, and the format strings are the numbers so the
+// stored value stays a plain integer.
+enum class groovy_mister_mtu
+{
+	_1500,
+	_3800,
+};
+
+// NLC quantization (CMD_INIT byte[1] bits [3:2]). The format strings are "0".."3"
+// so this stays wire- and config-compatible with the plain integer it replaces —
+// only the UI gains labels.
+enum class groovy_mister_near_level
+{
+	near_0,   // lossless
+	near_1,   // recommended default
+	near_2,
+	near_3,
+};
+
+// Vendored client log verbosity. Format strings are "0".."2" for the same
+// config-compatibility reason as above.
+enum class groovy_mister_lib_log
+{
+	errors,   // 0: setup/handshake/errors/reconnects — quiet in steady state
+	pacing,   // 1: + per-frame frame-pacing line and the RIO telemetry summary
+	trace,    // 2: + the full per-frame ACK/VRAM/input firehose
+};
+
 enum class frame_limit_type
 {
 	none,

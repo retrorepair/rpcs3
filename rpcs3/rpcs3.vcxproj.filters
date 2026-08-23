@@ -193,6 +193,9 @@
     <Filter Include="Io\Move">
       <UniqueIdentifier>{f8a98f7b-dc23-47c0-8a5f-d0b76eaf0df5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Io\GroovyMiSTer">
+      <UniqueIdentifier>{40cf10fe-52f8-4ede-b85e-692a32e99c7a}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Darwin">
       <UniqueIdentifier>{f6b701aa-7f4a-4816-b05f-80d24cb70e13}</UniqueIdentifier>
     </Filter>
@@ -716,6 +719,9 @@
     </ClCompile>
     <ClCompile Include="Input\keyboard_pad_handler.cpp">
       <Filter>Io\Keyboard</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\groovy_mister_pad_handler.cpp">
+      <Filter>Io\GroovyMiSTer</Filter>
     </ClCompile>
     <ClCompile Include="QTGeneratedFiles\Debug\moc_tooltips.cpp">
       <Filter>Generated Files\Debug</Filter>
@@ -1381,6 +1387,9 @@
     </ClInclude>
     <ClInclude Include="Input\keyboard_pad_handler.h">
       <Filter>Io\Keyboard</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\groovy_mister_pad_handler.h">
+      <Filter>Io\GroovyMiSTer</Filter>
     </ClInclude>
     <ClInclude Include="Input/mm_joystick_handler.h">
       <Filter>Io\MMJoystick</Filter>

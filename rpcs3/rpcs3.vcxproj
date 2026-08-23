@@ -214,6 +214,7 @@
     <ClCompile Include="Input\ds4_pad_handler.cpp" />
     <ClCompile Include="Input\evdev_joystick_handler.cpp" />
     <ClCompile Include="Input\keyboard_pad_handler.cpp" />
+    <ClCompile Include="Input\groovy_mister_pad_handler.cpp" />
     <ClCompile Include="Input\mm_joystick_handler.cpp" />
     <ClCompile Include="Input\pad_thread.cpp" />
     <ClCompile Include="Input\product_info.cpp" />
@@ -992,6 +993,7 @@
     <ClInclude Include="Input\ds4_pad_handler.h" />
     <ClInclude Include="Input\dualsense_pad_handler.h" />
     <ClInclude Include="Input\evdev_joystick_handler.h" />
+    <ClInclude Include="Input\groovy_mister_pad_handler.h" />
     <ClInclude Include="Input\gui_pad_thread.h" />
     <ClInclude Include="Input\hid_pad_handler.h" />
     <ClInclude Include="Input\keyboard_pad_handler.h" />

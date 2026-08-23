@@ -162,11 +162,21 @@ struct cfg_pad final : cfg::node
 struct cfg_player final : cfg::node
 {
 	pad_handler def_handler = pad_handler::null;
-	cfg_player(node* owner, const std::string& name, pad_handler type) : cfg::node(owner, name), def_handler(type) {}
+
+	// Most handlers name their device after themselves, which is why "Device" could
+	// default to the handler's own string. groovy_mister does not: its devices are
+	// "MiSTer Joy #1"/"#2" and get_device() rejects anything else, so a handler-only
+	// default would bind to nothing and silently fall back to NullPadHandler.
+	std::string def_device;
+
+	cfg_player(node* owner, const std::string& name, pad_handler type, std::string device = {})
+		: cfg::node(owner, name), def_handler(type), def_device(std::move(device)) {}
 
 	cfg::_enum<pad_handler> handler{ this, "Handler", def_handler };
 
-	cfg::string device{ this, "Device", handler.to_string() };
+	// def_device and handler are both declared above, so both are constructed by the
+	// time this runs. Empty override => upstream behaviour, i.e. the handler's name.
+	cfg::string device{ this, "Device", def_device.empty() ? handler.to_string() : def_device };
 	cfg_pad config{ this, "Config" };
 
 	cfg::string buddy_device{ this, "Buddy Device", handler.to_string() };
@@ -174,9 +184,13 @@ struct cfg_player final : cfg::node
 
 struct cfg_input final : cfg::node
 {
-	cfg_player player1{ this, "Player 1 Input", pad_handler::null };
-	cfg_player player2{ this, "Player 2 Input", pad_handler::null };
-	cfg_player player3{ this, "Player 3 Input", pad_handler::null };
+	// This fork exists for MiSTer output, so ports 1-2 default to the MiSTer's own
+	// pads. Port 3 keeps a keyboard so a build run without a MiSTer still has some
+	// working input — groovy_mister pads stay disconnected until MiSTer video output
+	// connects, since the input subscribe is sent from output_base::try_connect().
+	cfg_player player1{ this, "Player 1 Input", pad_handler::groovy_mister, "MiSTer Joy #1" };
+	cfg_player player2{ this, "Player 2 Input", pad_handler::groovy_mister, "MiSTer Joy #2" };
+	cfg_player player3{ this, "Player 3 Input", pad_handler::keyboard };
 	cfg_player player4{ this, "Player 4 Input", pad_handler::null };
 	cfg_player player5{ this, "Player 5 Input", pad_handler::null };
 	cfg_player player6{ this, "Player 6 Input", pad_handler::null };

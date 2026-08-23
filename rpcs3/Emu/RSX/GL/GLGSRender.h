@@ -5,6 +5,7 @@
 #include "GLProgramBuffer.h"
 #include "GLOverlays.h"
 #include "GLShaderInterpreter.h"
+#include "GLGroovyMisterOutput.h"
 #include "Emu/RSX/rsx_cache.h"
 
 #include <optional>
@@ -140,6 +141,10 @@ class GLGSRender : public GSRender, public ::rsx::reports::ZCULL_control
 	gl::fbo m_sshot_fbo;
 	std::unique_ptr<gl::texture> m_sshot_tex;
 	std::unique_ptr<gl::upscaler> m_upscaler;
+
+	// Groovy_MiSTer CRT streaming tap (see Emu/RSX/GroovyMister/). The GL
+	// capture backend of the same output the Vulkan renderer hosts.
+	gl_groovy_mister::output m_groovy_mister_output;
 	output_scaling_mode m_output_scaling = output_scaling_mode::bilinear;
 
 	// VAOs are mandatory for core profile

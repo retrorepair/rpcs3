@@ -38,6 +38,7 @@ void fmt_class_string<shortcut>::format(std::string& out, u64 arg)
 		case shortcut::gw_volume_up: return "gw_volume_up";
 		case shortcut::gw_volume_down: return "gw_volume_down";
 		case shortcut::gw_toggle_mouse_gyro: return "gw_toggle_mouse_gyro";
+		case shortcut::gw_mister_dump_frames: return "gw_mister_dump_frames";
 		case shortcut::count: return "count";
 		}
 
@@ -90,6 +91,7 @@ shortcut_settings::shortcut_settings()
 		{ shortcut::gw_volume_up, shortcut_info{ "gw_volume_up", tr("Volume Up"), "Ctrl+Shift++", shortcut_handler_id::game_window, true } },
 		{ shortcut::gw_volume_down, shortcut_info{ "gw_volume_down", tr("Volume Down"), "Ctrl+Shift+-", shortcut_handler_id::game_window, true } },
 		{ shortcut::gw_toggle_mouse_gyro, shortcut_info{ "gw_toggle_mouse_gyro", tr("Toggle Mouse-based Gyro"), "Ctrl+G", shortcut_handler_id::game_window, false } },
+		{ shortcut::gw_mister_dump_frames, shortcut_info{ "gw_mister_dump_frames", tr("MiSTer: Dump Raw Frames"), "Ctrl+Shift+D", shortcut_handler_id::game_window, false } },
 	})
 {
 }

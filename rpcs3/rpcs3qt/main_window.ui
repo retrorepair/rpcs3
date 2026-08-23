@@ -278,6 +278,7 @@
     <addaction name="confCPUAct"/>
     <addaction name="confGPUAct"/>
     <addaction name="confAudioAct"/>
+    <addaction name="confMisterAct"/>
     <addaction name="confIOAct"/>
     <addaction name="confSystemAct"/>
     <addaction name="confNetwrkAct"/>
@@ -609,6 +610,14 @@
    </property>
    <property name="toolTip">
     <string>Configure audio</string>
+   </property>
+  </action>
+  <action name="confMisterAct">
+   <property name="text">
+    <string>MiSTer</string>
+   </property>
+   <property name="toolTip">
+    <string>Configure Groovy MiSTer output</string>
    </property>
   </action>
   <action name="confIOAct">

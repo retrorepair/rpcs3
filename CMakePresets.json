@@ -57,6 +57,7 @@
         "USE_FAUDIO": "OFF",
         "USE_SYSTEM_CURL": "OFF",
         "USE_SYSTEM_ZLIB": "OFF",
+        "USE_SYSTEM_SDL": "OFF",
         "USE_SYSTEM_OPENAL": "OFF",
         "USE_SYSTEM_OPENCV": "OFF",
         "BUILD_LLVM": "ON",

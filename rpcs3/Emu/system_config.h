@@ -246,6 +246,187 @@ struct cfg_root : cfg::node
 
 	} video{ this };
 
+	struct node_groovy_mister : cfg::node
+	{
+		node_groovy_mister(cfg::node* _this) : cfg::node(_this, "GroovyMister") {}
+
+		cfg::_bool enabled{ this, "Enabled", false };
+		cfg::string host{ this, "MiSTer Host", "127.0.0.1" };
+		// switchres monitor preset. Empty = switchres default ("generic_15"),
+		// which is exactly what the reference RetroArch setup uses
+		// (crt_switch_resolution=4 -> no sr_set_monitor -> generic_15).
+		// Other values: arcade_15 / arcade_31 / pc_31_120 / generic_15 / ntsc /
+		// pal / vga ... (see switchres monitor presets).
+		cfg::string monitor_preset{ this, "Monitor Preset", "" };
+		// Optional path to a switchres.ini (sr_load_ini) for power users.
+		cfg::string switchres_ini{ this, "Switchres Ini", "" };
+		// = RetroArch's "mister_interlaced_fb". When switchres yields an
+		// interlaced modeline: false -> send interlace=2 (progressive
+		// framebuffer, the proven-working default); true -> interlace=1.
+		// Consumed inside ensure_mode(), which re-runs whenever the source mode
+		// changes — so a change here lands on the next mode switch.
+		cfg::_bool interlaced_fb{ this, "Interlaced Framebuffer", false, true };
+		// Override the source resolution fed to switchres + downscale
+		// target. Default Auto = use the PS3 avconf (current behaviour).
+		// Any other value forces the MiSTer pipeline to downres an
+		// RPCS3-rendered framebuffer to the chosen output — useful for
+		// titles that render shrunken inside their advertised mode (e.g.
+		// BlazBlue Calamity Trigger at 480p): run RPCS3 at 720p so the
+		// game fills its framebuffer, then pick 480p 4:3 here. Refresh
+		// (50/59.94 Hz) is still inferred from the PS3 video mode.
+		// Re-read on every flip via ensure_mode(), so this one really is live.
+		cfg::_enum<groovy_mister_output_res> output_resolution{ this, "Output Resolution Override", groovy_mister_output_res::_auto, true };
+		// Read per flip in the presenter.
+		cfg::_enum<groovy_mister_host_display> host_display{ this, "Host Display While Active", groovy_mister_host_display::parallel, true };
+		cfg::_bool tap_audio{ this, "Mirror Audio To MiSTer", true };
+		// Wire pixel format (CMD_INIT byte[4]), fixed for the session. RGB565
+		// costs a third fewer raw bytes than RGB888 (and gives LZ4/NLC less to
+		// chew) at the cost of banding — worth it when the link or the FPGA is
+		// bandwidth-bound (choppy / dropped frames). Replaces the old
+		// "Force RGB565" bool; an existing config simply falls back to RGB888.
+		cfg::_enum<groovy_mister_rgb_mode> rgb_mode{ this, "RGB Mode", groovy_mister_rgb_mode::rgb888 };
+		// Only 1500 and 3800 mean anything to the core, and 3800 additionally
+		// requires OSD Server -> Jumbo frames = On. Stored as a plain number, so
+		// a config carrying the old free-form integer still reads back if it was
+		// one of these two.
+		cfg::_enum<groovy_mister_mtu> mtu{ this, "MTU", groovy_mister_mtu::_1500 };
+		// Wire-side codec. NLC is the default — the deterministic near-lossless
+		// codec (wire format v2) decoded by the autonomous FPGA display engine.
+		// Off = raw, LZ4 / LZ4 HC are the general-purpose fallbacks.
+		cfg::_enum<groovy_mister_lz4> lz4{ this, "LZ4 Compression", groovy_mister_lz4::nlc_tiled };
+		// NLC tuning — only effective when the codec above is NLC. Both ride the
+		// CMD_INIT byte[1] packing, so they are fixed for the session.
+		//
+		// Pack = the entropy front-end (byte[1] bit 7). Rice is the default: it is
+		// what brings heavy 3D content under the core's ~38 MB/s ingest ceiling.
+		// Rice REQUIRES a core with the Rice decoder (the rbf_rice_r3 kit) — on an
+		// older core the bit is ignored and Rice bytes are misparsed as Tiled
+		// (garbage picture). Tiled works on any NLC core and is better on flat/2D
+		// content (Rice has a 1-bit/sample floor).
+		//
+		// NEAR = quantization (bits [3:2]). 0 = lossless. Rice + NEAR 1 is the
+		// HW-validated default: a demanding 3D title runs at a LOCKED
+		// 60 fps (330 KB avg / 472 KB peak = 28 MB/s, 34% headroom under the
+		// MiSTer's measured ~38 MB/s ingest ceiling), and NEAR 0/1/2 were confirmed
+		// VISUALLY IDENTICAL on the CRT.
+		//   tiled near0: 625/636 KB avg/worst — 38.1 MB/s, AT the ceiling (the lag)
+		//   rice  near0: 573/583 KB — 35.0 MB/s, no headroom (see caveat below)
+		//   rice  near1: 413/423 KB — 25.4 MB/s, 34% headroom   <- DEFAULT
+		//   rice  near2: 350/359 KB — 21.5 MB/s, reserve knob
+		// NEAR 0 caveat: on very heavy scenes its peaks (~650 KB = a full frame period
+		// of ingest) can saturate the receiver and produce a few seconds of horizontal
+		// noise banding until the scene lightens (bounded and self-recovering).
+		// Colour is fixed at YCoCg-R (byte[1] bit 4); the RGB-direct path was retired.
+		cfg::_enum<groovy_mister_nlc_pack> nlc_pack{ this, "NLC Pack", groovy_mister_nlc_pack::rice };
+		cfg::_enum<groovy_mister_near_level> nlc_near_level{ this, "NLC NEAR Level", groovy_mister_near_level::near_1 };
+		// Vendored client ([gmw]) log verbosity (gmw_set_log_callback), cumulative:
+		// 0 = setup/handshake + errors + reconnect warnings + rare one-offs like an
+		//     NLC->raw encode fallback (always emitted; quiet in steady state);
+		// 1 = + one per-frame frame-pacing ("Frame Sleep") line;
+		// 2 = + the full per-frame firehose (ACK/echo/VRAM-status bits, JOY/KBD
+		//     state, and the per-frame NLC encode line) — a line EVERY frame, adds
+		//     sender-thread latency; short, targeted debugging only.
+		// Controls only the vendored client's lines; RPCS3's own GROOVY heartbeat /
+		// capture traces are gated independently and unaffected.
+		cfg::_enum<groovy_mister_lib_log> lib_log_verbose{ this, "MiSTer Library Log Verbosity", groovy_mister_lib_log::errors };
+		// Raw pre-encode frame dump (GM_FRAME_DUMP). Count = how many blits to
+		// capture before auto-stop. Directory empty = <config dir>/mister_frames/.
+		// Consumed by both the Ctrl+Shift+D hotkey and the settings-tab button.
+		// Read at arm time on the sender thread, so both are live.
+		cfg::_int<1, 100000> frame_dump_frames{ this, "Frame Dump Frame Count", 120, true };
+		cfg::string          frame_dump_dir{ this, "Frame Dump Directory", "", true };
+
+		// Hold an idle session open. The core drops a session that sends nothing
+		// on the video socket for its idle timeout (OSD Server -> Idle timeout,
+		// default 5 s) and frees the CRT — so without this, pausing or opening a
+		// menu for a few seconds ends the session. Leave on; the option exists to
+		// restore pre-idle-timeout behaviour against a very old core.
+		cfg::_bool keepalive{ this, "Keep Session Alive While Idle", true };
+
+		// Vendored client's ACK watchdog: after ~10 blits with no frameEcho
+		// advance it tears down the video side and reconnects, re-sending the
+		// input subscribe and replaying the modeline. RPCS3 additionally realigns
+		// its blit counter and re-arms the modeline on every reconnect.
+		cfg::_bool auto_reconnect{ this, "Auto Reconnect", true };
+
+		// Frame delay (advanced). vCountSync passed to CmdBlit: the raster line
+		// the next frame's start syncs to. Later line = lower latency, less
+		// margin before a late frame tears or frameskips. 1 is RetroArch's
+		// default and our proven value. 0 selects the client's "auto frame
+		// delay", which predicts from its own measured emulation time and
+		// assumes a synchronous render->blit->waitSync loop — our sender thread
+		// is deferred, so auto is EXPERIMENTAL here and wants on-cabinet A/B.
+		// Dynamic on purpose: this exists to be A/B'd against a CRT, and having
+		// to reboot the game between each trial would make that useless. The
+		// sender thread re-reads both per blit (an atomic load each).
+		cfg::_int<0, 1023> frame_delay_line{ this, "Frame Delay Vsync Line", 1, true };
+		// Safety headroom for auto mode only, in microseconds (GroovyMAME's
+		// mister_fd_margin is 1.5/2.0/3.0 ms). Ignored unless the line is 0.
+		cfg::_int<0, 10000> frame_delay_margin_us{ this, "Frame Delay Margin", 0, true };
+
+		// CRT-shape guidance, ON by default. When on, a modeline taller than 576
+		// lines or wider than 1024 px is refused — the shape a 15/31 kHz CRT fed
+		// by this core is expected to produce. Turning it OFF downgrades that to
+		// a warning and lets the mode through; it does NOT lift the protocol's
+		// hard per-blit byte limit (720x576x3 = 1,245,312 bytes, the client's
+		// actual blit buffer), which is a memory bound and is always enforced.
+		// Checked inside ensure_mode(), so a change applies at the next mode switch.
+		cfg::_bool crt_safety_limits{ this, "CRT Safety Limits", true, true };
+
+		// ---------------------------------------------------------------------
+		// Advanced switchres overrides.
+		//
+		// Each maps 1:1 onto a switchres option of the same name (the SR_OPT_*
+		// constants in 3rdparty/switchres/switchres_defines.h) and is passed
+		// straight to sr_set_option(). EMPTY MEANS "DON'T CALL IT" — switchres's
+		// own default stands, so a config with all of these blank behaves exactly
+		// like a build without them. Value syntax and semantics are switchres's;
+		// upstream's switchres.ini is the reference.
+		//
+		// Only options that actually affect modeline calculation are here. The
+		// host-display ones (display, api, keep_changes, lock_*_modes and the
+		// custom-video-backend group) are inert in this build: RPCS3 compiles
+		// switchres with SR_CALC_ONLY and drives the dummy backend, because we
+		// never switch a host display — we hand the numbers to the MiSTer. They
+		// remain reachable via the switchres INI if ever needed.
+		//
+		// modeline_generation is deliberately absent: with the dummy backend it
+		// is the only thing that creates a candidate mode, so setting it to 0
+		// leaves switchres with nothing to choose from and output goes dark.
+		// ---------------------------------------------------------------------
+
+		// Custom monitor range, used when the preset is "custom". 14 comma-
+		// separated fields; see switchres.ini. Multi-range monitors need
+		// crt_range1-9 too — use the INI for those.
+		cfg::string sr_crt_range0{ this, "Switchres crt_range0", "" };
+		// Refresh range for the "lcd" preset, e.g. "50-61".
+		cfg::string sr_lcd_range{ this, "Switchres lcd_range", "" };
+		// Force a literal modeline in XFree86 format. DANGEROUS: switchres
+		// derives the monitor range FROM this string, bypassing the selected
+		// preset and every CRT limit it carried.
+		cfg::string sr_modeline{ this, "Switchres modeline", "" };
+		// Constrain the OUTPUT mode as <w>x<h>@<r>, 0 = wildcard. Distinct from
+		// "Output Resolution Override", which changes what we ASK switchres for:
+		// this pins what it may return. e.g. "0x240" = any width, force 240
+		// lines — the only way to force a scanline count.
+		cfg::string sr_user_mode{ this, "Switchres user_mode", "" };
+
+		cfg::string sr_interlace{ this, "Switchres interlace", "" };
+		cfg::string sr_doublescan{ this, "Switchres doublescan", "" };
+		cfg::string sr_interlace_force_even{ this, "Switchres interlace_force_even", "" };
+		cfg::string sr_dotclock_min{ this, "Switchres dotclock_min", "" };
+		cfg::string sr_sync_refresh_tolerance{ this, "Switchres sync_refresh_tolerance", "" };
+		cfg::string sr_super_width{ this, "Switchres super_width", "" };
+		cfg::string sr_aspect{ this, "Switchres aspect", "" };
+		cfg::string sr_h_size{ this, "Switchres h_size", "" };
+		cfg::string sr_h_shift{ this, "Switchres h_shift", "" };
+		cfg::string sr_v_shift{ this, "Switchres v_shift", "" };
+		cfg::string sr_v_shift_correct{ this, "Switchres v_shift_correct", "" };
+		cfg::string sr_pixel_precision{ this, "Switchres pixel_precision", "" };
+		cfg::string sr_scale_proportional{ this, "Switchres scale_proportional", "" };
+
+	} groovy_mister{ this };
+
 	struct node_audio : cfg::node
 	{
 		node_audio(cfg::node* _this) : cfg::node(_this, "Audio") {}

@@ -250,6 +250,22 @@ void GLGSRender::flip(const rsx::display_flip_info_t& info)
 		buffer_height = present_info.height;
 	}
 
+	// Groovy_MiSTer CRT streaming tap (see Emu/RSX/GroovyMister/). Same hook
+	// point as the Vulkan renderer (VKPresent.cpp): image_to_flip is resolved
+	// and buffer_width/height hold the post-avconf visible rect — exactly the
+	// sub-rect the host-window blit will sample. record_capture only queues
+	// GPU work (blit + PBO readback) on this (RSX) thread; the readback is
+	// consumed deferred on a later flip once its fence signals. skip_frame
+	// already early-returned above. Host-display "headless" is not implemented
+	// for GL — the window keeps rendering (Parallel behavior).
+	m_groovy_mister_output.poll_connect_on_flip();
+
+	if (image_to_flip && info.emu_flip && m_groovy_mister_output.is_active())
+	{
+		m_groovy_mister_output.record_capture(cmd, image_to_flip,
+			static_cast<u16>(buffer_width), static_cast<u16>(buffer_height));
+	}
+
 	if (info.emu_flip)
 	{
 		evaluate_cpu_usage_reduction_limits();

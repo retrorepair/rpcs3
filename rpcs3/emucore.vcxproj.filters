@@ -67,6 +67,9 @@
     <Filter Include="Emu\Audio\FAudio">
       <UniqueIdentifier>{7555ff6f-67a9-4d02-b744-0bf896751edb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Emu\Audio\Groovy">
+      <UniqueIdentifier>{9fb8ac0b-9214-4eb9-ace2-3722f50c850c}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Emu\GPU\RSX\Program">
       <UniqueIdentifier>{d055ca32-157a-4d8c-895e-29509858fcb0}</UniqueIdentifier>
     </Filter>
@@ -980,6 +983,9 @@
     </ClCompile>
     <ClCompile Include="Emu\Audio\AudioBackend.cpp">
       <Filter>Emu\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Emu\Audio\Groovy\GroovyMisterAudioTap.cpp">
+      <Filter>Emu\Audio\Groovy</Filter>
     </ClCompile>
     <ClCompile Include="Emu\Io\pad_config.cpp">
       <Filter>Emu\Io</Filter>
@@ -2147,6 +2153,9 @@
     </ClInclude>
     <ClInclude Include="Emu\Audio\AudioBackend.h">
       <Filter>Emu\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Emu\Audio\Groovy\GroovyMisterAudioTap.h">
+      <Filter>Emu\Audio\Groovy</Filter>
     </ClInclude>
     <ClInclude Include="Emu\Audio\Null\NullAudioBackend.h">
       <Filter>Emu\Audio\Null</Filter>

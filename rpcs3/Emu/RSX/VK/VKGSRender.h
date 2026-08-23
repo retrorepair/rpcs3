@@ -18,6 +18,7 @@
 #include "VKFramebuffer.h"
 #include "VKShaderInterpreter.h"
 #include "VKQueryPool.h"
+#include "VKGroovyMisterOutput.h"
 
 #include "Emu/RSX/GSRender.h"
 #include "Emu/RSX/Host/RSXDMAWriter.h"
@@ -195,6 +196,8 @@ private:
 	std::vector<vk::image*> m_fbo_images;
 
 	std::unique_ptr<vk::image> m_overlay_recording_img;
+
+	vk_groovy_mister::output m_groovy_mister_output;
 
 	//Vertex layout
 	rsx::vertex_input_layout m_vertex_layout;

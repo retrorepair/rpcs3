@@ -139,6 +139,7 @@ target_sources(rpcs3_emu PRIVATE
     Audio/audio_utils.cpp
     Audio/AudioDumper.cpp
     Audio/AudioBackend.cpp
+    Audio/Groovy/GroovyMisterAudioTap.cpp
     Audio/Cubeb/CubebBackend.cpp
     Audio/Cubeb/cubeb_enumerator.cpp
 )
@@ -485,6 +486,7 @@ target_sources(rpcs3_emu PRIVATE
     RSX/Core/RSXDrawCommands.cpp
     RSX/gcm_enums.cpp
     RSX/gcm_printing.cpp
+    RSX/GroovyMister/groovy_mister_output.cpp
     RSX/GSRender.cpp
     RSX/Host/MM.cpp
     RSX/Host/RSXDMAWriter.cpp
@@ -574,6 +576,7 @@ if(NOT ANDROID AND NOT APPLE)
         RSX/GL/GLDraw.cpp
         RSX/GL/GLFragmentProgram.cpp
         RSX/GL/GLGSRender.cpp
+        RSX/GL/GLGroovyMisterOutput.cpp
         RSX/GL/GLHelpers.cpp
         RSX/GL/GLOverlays.cpp
         RSX/GL/GLPipelineCompiler.cpp
@@ -632,6 +635,7 @@ if(TARGET 3rdparty_vulkan)
         RSX/VK/VKFragmentProgram.cpp
         RSX/VK/VKFramebuffer.cpp
         RSX/VK/VKGSRender.cpp
+        RSX/VK/VKGroovyMisterOutput.cpp
         RSX/VK/VKHelpers.cpp
         RSX/VK/VKMemAlloc.cpp
         RSX/VK/VKOverlays.cpp
@@ -677,6 +681,8 @@ target_link_libraries(rpcs3_emu
         3rdparty::openal
         3rdparty::cubeb
         3rdparty::soundtouch
+        3rdparty::groovy_mister
+        3rdparty::switchres
         3rdparty::miniupnpc
         3rdparty::libevdev
         3rdparty::protobuf

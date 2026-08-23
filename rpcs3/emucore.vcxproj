@@ -105,6 +105,7 @@
     <ClCompile Include="Emu\Io\LogitechG27Config.cpp" />
     <ClCompile Include="Emu\Io\usio.cpp" />
     <ClCompile Include="Emu\Audio\AudioBackend.cpp" />
+    <ClCompile Include="Emu\Audio\Groovy\GroovyMisterAudioTap.cpp" />
     <ClCompile Include="Emu\Io\interception.cpp" />
     <ClCompile Include="Emu\Io\KeyboardHandler.cpp" />
     <ClCompile Include="Emu\Io\mouse_config.cpp" />
@@ -870,6 +871,7 @@
     <ClInclude Include="Emu\IPC.h" />
     <ClInclude Include="Emu\Audio\AudioDumper.h" />
     <ClInclude Include="Emu\Audio\AudioBackend.h" />
+    <ClInclude Include="Emu\Audio\Groovy\GroovyMisterAudioTap.h" />
     <ClInclude Include="Emu\Audio\Null\NullAudioBackend.h" />
     <ClInclude Include="Emu\Audio\Null\null_enumerator.h" />
     <ClInclude Include="Emu\Cell\Common.h" />

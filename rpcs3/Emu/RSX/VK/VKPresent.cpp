@@ -756,7 +756,44 @@ void VKGSRender::flip(const rsx::display_flip_info_t& info)
 		}
 	}
 
-	if (!image_to_flip || aspect_ratio.x1 || aspect_ratio.y1)
+	// Groovy_MiSTer headless output tap. record_capture only RECORDS the
+	// downscale/copy into the flip command buffer — RPCS3 submits that CB as
+	// part of its normal present. We must NOT flush/sync here: doing
+	// flush_command_queue() mid-flip every frame corrupts the present/CB ring
+	// and crashes the RSX thread right after the first frame. The readback is
+	// consumed a few flips later inside record_capture, once that CB is
+	// guaranteed complete (see VKGroovyMisterOutput drain_matured_captures).
+	// If MiSTer was enabled but not reachable at init (e.g. RPCS3 started
+	// before the Groovy core), keep retrying the connect here. No-op once
+	// connected or if MiSTer was never armed; internally throttled so it
+	// only periodically hitches the present thread while the core is down.
+	m_groovy_mister_output.poll_connect_on_flip();
+
+	if (image_to_flip && info.emu_flip && !info.skip_frame && m_groovy_mister_output.is_active())
+	{
+		// buffer_width/height = the visible sub-rect of image_to_flip (post
+		// avconf clamp + get_present_source) — the SAME rect the host-window
+		// blit samples via srcOffsets below. image_to_flip is the game's full
+		// render-target surface and can be larger than the video mode (e.g.
+		// Gran Turismo); capturing beyond this rect streams stale surface
+		// content as a duplicated image on the MiSTer.
+		m_groovy_mister_output.record_capture(*m_current_command_buffer, image_to_flip,
+			static_cast<u16>(buffer_width), static_cast<u16>(buffer_height));
+	}
+
+	// Host display = Headless: when MiSTer is the active output, skip the
+	// visible-render block (upscaler, color calibration, blit-to-target) so
+	// the host RPCS3 window stays blank — emulation still runs, MiSTer still
+	// receives frames (record_capture already executed above). We KEEP the
+	// queue_swap_request path at the end of flip() so the swapchain ring
+	// stays healthy (acquire/present pair per frame) — the window just shows
+	// a black frame. This is the low-latency / low-overhead path for
+	// dedicated arcade-cabinet setups.
+	const bool mister_headless =
+		m_groovy_mister_output.is_active() &&
+		g_cfg.groovy_mister.host_display.get() == groovy_mister_host_display::headless;
+
+	if (!image_to_flip || aspect_ratio.x1 || aspect_ratio.y1 || mister_headless)
 	{
 		// Clear the window background to black
 		VkClearColorValue clear_black {};
@@ -799,7 +836,7 @@ void VKGSRender::flip(const rsx::display_flip_info_t& info)
 		}
 	}
 
-	if (image_to_flip)
+	if (image_to_flip && !mister_headless)
 	{
 		const bool use_full_rgb_range_output = g_cfg.video.full_rgb_range_output.get();
 

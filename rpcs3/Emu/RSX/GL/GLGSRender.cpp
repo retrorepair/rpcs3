@@ -432,10 +432,26 @@ void GLGSRender::on_init_thread()
 			m_shaders_cache->load(&dlg);
 		}
 	}
+
+	// Same placement as the Vulkan renderer (end of on_init_thread): the GL
+	// context is current on this (RSX) thread, which owns all capture GL calls.
+	m_groovy_mister_output.init();
+
+	if (g_cfg.groovy_mister.enabled.get() &&
+		g_cfg.groovy_mister.host_display.get() == groovy_mister_host_display::headless)
+	{
+		rsx_log.warning("Groovy_MiSTer host display 'Headless' is not implemented on the OpenGL renderer; "
+			"the host window keeps rendering (Parallel behavior).");
+	}
 }
 
 void GLGSRender::on_exit()
 {
+	// Stop the MiSTer stream first (mirrors VKGSRender::on_exit): joins the
+	// sender thread and releases the GL capture resources while the context
+	// is still current on this thread.
+	m_groovy_mister_output.shutdown();
+
 	// Destroy internal RSX state, may call upon this->do_local_task
 	GSRender::on_exit();
 

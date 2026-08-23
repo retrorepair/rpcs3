@@ -56,6 +56,7 @@ extern atomic_t<bool> g_user_asked_for_fullscreen;
 extern atomic_t<bool> g_user_asked_for_recording;
 extern atomic_t<bool> g_user_asked_for_screenshot;
 extern atomic_t<bool> g_user_asked_for_frame_capture;
+extern atomic_t<bool> g_user_asked_for_mister_frame_dump;
 extern atomic_t<bool> g_disable_frame_limit;
 extern atomic_t<bool> g_game_window_focused;
 extern atomic_t<recording_mode> g_recording_mode;
@@ -292,6 +293,15 @@ void gs_frame::handle_shortcut(gui::shortcuts::shortcut shortcut_key, const QKey
 	case gui::shortcuts::shortcut::gw_screenshot:
 	{
 		g_user_asked_for_screenshot = true;
+		break;
+	}
+	case gui::shortcuts::shortcut::gw_mister_dump_frames:
+	{
+		// Edge-triggered: VKGroovyMisterOutput::record_capture clears this
+		// on the RSX thread and signals the sender thread to call
+		// gmw_set_frame_dump. Dumps the next ~120 raw pre-encode frames
+		// into <rpcs3 config dir>/mister_frames/ and auto-stops.
+		g_user_asked_for_mister_frame_dump = true;
 		break;
 	}
 	case gui::shortcuts::shortcut::gw_toggle_recording:

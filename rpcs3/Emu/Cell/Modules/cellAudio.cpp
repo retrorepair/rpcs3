@@ -8,6 +8,7 @@
 #include "Emu/Cell/lv2/sys_event.h"
 #include "cellAudio.h"
 #include "util/video_provider.h"
+#include "Emu/Audio/Groovy/GroovyMisterAudioTap.h"
 
 #include <cmath>
 
@@ -291,6 +292,13 @@ void audio_ringbuffer::process_resampled_data()
 
 void audio_ringbuffer::commit_data(f32* buf, u32 sample_cnt)
 {
+	// MiSTer (Groovy_MiSTer) audio mirror: tap the post-mix PS3 PCM here,
+	// before the host-side downmix mutates `buf` in place. Pure parallel
+	// copy — the host audio path below is unchanged. The MiSTer video
+	// sender thread drains this and issues gmw_audio() (it owns the socket).
+	if (groovy_mister_audio_tap::is_active())
+		groovy_mister_audio_tap::write(buf, sample_cnt, cfg.audio_channels);
+
 	const u32 sample_cnt_in = sample_cnt * cfg.audio_channels;
 	const u32 sample_cnt_out = sample_cnt * cfg.backend_ch_cnt;
 

@@ -1604,6 +1604,664 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="misterTab">
+       <attribute name="title">
+        <string>MiSTer</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="misterTab_layout">
+        <item>
+         <widget class="QLabel" name="mister_intro_label">
+          <property name="text">
+           <string>Streams RPCS3's rendered frame to a MiSTer FPGA over UDP, for low-latency output on a CRT or arcade monitor. Needs the Groovy_MiSTer core running on the MiSTer. Hover any option for details.</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="mister_enabled">
+          <property name="text">
+           <string>Enable MiSTer output</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="mister_apply_note_label">
+          <property name="text">
+           <string>Most settings apply when the next game boots; output resolution, interlaced framebuffer, CRT safety limits, host display, frame delay and frame dump apply immediately.</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="gb_mister_connection">
+          <property name="title">
+           <string>Connection</string>
+          </property>
+          <layout class="QVBoxLayout" name="gb_mister_connection_layout">
+           <item>
+            <layout class="QFormLayout" name="mister_connection_form">
+             <item row="0" column="0">
+              <widget class="QLabel" name="mister_host_label">
+               <property name="text">
+                <string>MiSTer host:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="mister_host">
+               <property name="placeholderText">
+                <string>e.g. 192.168.1.100</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="mister_mtu_label">
+               <property name="text">
+                <string>MTU:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QComboBox" name="mister_mtu"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="mister_keepalive">
+             <property name="text">
+              <string>Keep the session alive while idle</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="mister_auto_reconnect">
+             <property name="text">
+              <string>Reconnect automatically if the core stops responding</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="gb_mister_modeline">
+          <property name="title">
+           <string>Modeline</string>
+          </property>
+          <layout class="QVBoxLayout" name="gb_mister_modeline_layout">
+           <item>
+            <widget class="QLabel" name="mister_modeline_caption">
+             <property name="text">
+              <string>The modeline is calculated by switchres from two things: the resolution we ask for, and what the monitor preset says your display can do.</string>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QFormLayout" name="mister_modeline_form">
+             <item row="0" column="0">
+              <widget class="QLabel" name="mister_output_resolution_label">
+               <property name="text">
+                <string>Output resolution:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QComboBox" name="mister_output_resolution"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="mister_monitor_preset_label">
+               <property name="text">
+                <string>Monitor preset:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QComboBox" name="mister_monitor_preset"/>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="mister_monitor_preset_custom">
+               <property name="placeholderText">
+                <string>switchres preset name</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="mister_switchres_ini_label">
+               <property name="text">
+                <string>Switchres INI:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <layout class="QHBoxLayout" name="mister_switchres_ini_row">
+               <item>
+                <widget class="QLineEdit" name="mister_switchres_ini">
+                 <property name="placeholderText">
+                  <string>(optional) path to switchres.ini</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="mister_switchres_ini_browse">
+                 <property name="text">
+                  <string>Browse...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="mister_interlaced_fb">
+             <property name="text">
+              <string>Interlaced framebuffer (interlace=1 instead of 2)</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="mister_crt_safety_limits">
+             <property name="text">
+              <string>CRT safety limits (refuse modes over 1024x576)</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="gb_mister_stream">
+          <property name="title">
+           <string>Stream</string>
+          </property>
+          <layout class="QVBoxLayout" name="gb_mister_stream_layout">
+           <item>
+            <layout class="QFormLayout" name="mister_stream_form">
+             <item row="0" column="0">
+              <widget class="QLabel" name="mister_rgb_mode_label">
+               <property name="text">
+                <string>Pixel format:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QComboBox" name="mister_rgb_mode"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="mister_lz4_label">
+               <property name="text">
+                <string>Compression:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QComboBox" name="mister_lz4"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="mister_nlc_pack_label">
+               <property name="text">
+                <string>NLC pack:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QComboBox" name="mister_nlc_pack"/>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="mister_nlc_near_level_label">
+               <property name="text">
+                <string>NLC NEAR level:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QComboBox" name="mister_nlc_near_level"/>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="gb_mister_audio">
+          <property name="title">
+           <string>Audio</string>
+          </property>
+          <layout class="QVBoxLayout" name="gb_mister_audio_layout">
+           <item>
+            <widget class="QCheckBox" name="mister_tap_audio">
+             <property name="text">
+              <string>Mirror PS3 audio to MiSTer</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="gb_mister_host_display">
+          <property name="title">
+           <string>Host display while MiSTer is active</string>
+          </property>
+          <layout class="QFormLayout" name="gb_mister_host_display_layout">
+           <item row="0" column="0">
+            <widget class="QLabel" name="mister_host_display_label">
+             <property name="text">
+              <string>Mode:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QComboBox" name="mister_host_display"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="gb_mister_diagnostics">
+          <property name="title">
+           <string>Diagnostics</string>
+          </property>
+          <layout class="QVBoxLayout" name="gb_mister_diagnostics_layout">
+           <item>
+            <layout class="QFormLayout" name="mister_diagnostics_form">
+             <item row="0" column="0">
+              <widget class="QLabel" name="mister_lib_log_verbose_label">
+               <property name="text">
+                <string>MiSTer library log verbosity:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QComboBox" name="mister_lib_log_verbose"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="mister_frame_delay_line_label">
+               <property name="text">
+                <string>Frame delay vsync line:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="mister_frame_delay_line">
+               <property name="keyboardTracking">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="mister_frame_delay_margin_label">
+               <property name="text">
+                <string>Frame delay margin (µs):</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QSpinBox" name="mister_frame_delay_margin">
+               <property name="keyboardTracking">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="mister_frame_dump_frames_label">
+               <property name="text">
+                <string>Frame dump count:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QSpinBox" name="mister_frame_dump_frames">
+               <property name="keyboardTracking">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="mister_frame_dump_dir_label">
+               <property name="text">
+                <string>Frame dump directory:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <layout class="QHBoxLayout" name="mister_frame_dump_dir_row">
+               <item>
+                <widget class="QLineEdit" name="mister_frame_dump_dir">
+                 <property name="placeholderText">
+                  <string>(empty = &lt;config&gt;/mister_frames/)</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="mister_frame_dump_dir_browse">
+                 <property name="text">
+                  <string>Browse...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QPushButton" name="mister_frame_dump_now">
+             <property name="text">
+              <string>Dump Raw Frames Now</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="gb_mister_advanced_sr">
+          <property name="title">
+           <string>Advanced switchres overrides</string>
+          </property>
+          <layout class="QVBoxLayout" name="gb_mister_advanced_sr_layout">
+           <item>
+           <widget class="QCheckBox" name="mister_sr_toggle">
+            <property name="text">
+             <string>Show advanced fields</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+           </item>
+           <item>
+            <widget class="QWidget" name="mister_sr_contents" native="true">
+             <layout class="QVBoxLayout" name="mister_sr_contents_layout">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="mister_sr_caption">
+                <property name="text">
+                 <string>Each field maps to the switchres option of the same name and is passed through verbatim. Blank means the field is never sent, so the monitor preset's own value stands.</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QFormLayout" name="mister_sr_form">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="mister_sr_user_mode_label">
+                  <property name="text">
+                   <string>user_mode:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="mister_sr_user_mode">
+                  <property name="placeholderText">
+                   <string>e.g. 0x240 — any width, force 240 lines</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="mister_sr_crt_range0_label">
+                  <property name="text">
+                   <string>crt_range0:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLineEdit" name="mister_sr_crt_range0">
+                  <property name="placeholderText">
+                   <string>custom monitor range — needs preset &quot;custom&quot;</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="mister_sr_lcd_range_label">
+                  <property name="text">
+                   <string>lcd_range:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QLineEdit" name="mister_sr_lcd_range">
+                  <property name="placeholderText">
+                   <string>e.g. 50-61 — needs preset &quot;lcd&quot;</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0">
+                 <widget class="QLabel" name="mister_sr_modeline_label">
+                  <property name="text">
+                   <string>modeline (overrides the preset):</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="1">
+                 <widget class="QLineEdit" name="mister_sr_modeline">
+                  <property name="placeholderText">
+                   <string>XFree86 modeline — BYPASSES the preset's CRT limits</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="0">
+                 <widget class="QLabel" name="mister_sr_interlace_label">
+                  <property name="text">
+                   <string>interlace:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="1">
+                 <widget class="QLineEdit" name="mister_sr_interlace"/>
+                </item>
+                <item row="5" column="0">
+                 <widget class="QLabel" name="mister_sr_doublescan_label">
+                  <property name="text">
+                   <string>doublescan:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="5" column="1">
+                 <widget class="QLineEdit" name="mister_sr_doublescan"/>
+                </item>
+                <item row="6" column="0">
+                 <widget class="QLabel" name="mister_sr_interlace_force_even_label">
+                  <property name="text">
+                   <string>interlace_force_even:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="6" column="1">
+                 <widget class="QLineEdit" name="mister_sr_interlace_force_even"/>
+                </item>
+                <item row="7" column="0">
+                 <widget class="QLabel" name="mister_sr_dotclock_min_label">
+                  <property name="text">
+                   <string>dotclock_min:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="7" column="1">
+                 <widget class="QLineEdit" name="mister_sr_dotclock_min">
+                  <property name="placeholderText">
+                   <string>MHz</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="8" column="0">
+                 <widget class="QLabel" name="mister_sr_sync_refresh_tolerance_label">
+                  <property name="text">
+                   <string>sync_refresh_tolerance:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="8" column="1">
+                 <widget class="QLineEdit" name="mister_sr_sync_refresh_tolerance">
+                  <property name="placeholderText">
+                   <string>Hz</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="9" column="0">
+                 <widget class="QLabel" name="mister_sr_super_width_label">
+                  <property name="text">
+                   <string>super_width:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="9" column="1">
+                 <widget class="QLineEdit" name="mister_sr_super_width"/>
+                </item>
+                <item row="10" column="0">
+                 <widget class="QLabel" name="mister_sr_aspect_label">
+                  <property name="text">
+                   <string>aspect:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="10" column="1">
+                 <widget class="QLineEdit" name="mister_sr_aspect">
+                  <property name="placeholderText">
+                   <string>e.g. 4:3</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="11" column="0">
+                 <widget class="QLabel" name="mister_sr_h_size_label">
+                  <property name="text">
+                   <string>h_size:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="11" column="1">
+                 <widget class="QLineEdit" name="mister_sr_h_size"/>
+                </item>
+                <item row="12" column="0">
+                 <widget class="QLabel" name="mister_sr_h_shift_label">
+                  <property name="text">
+                   <string>h_shift:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="12" column="1">
+                 <widget class="QLineEdit" name="mister_sr_h_shift"/>
+                </item>
+                <item row="13" column="0">
+                 <widget class="QLabel" name="mister_sr_v_shift_label">
+                  <property name="text">
+                   <string>v_shift:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="13" column="1">
+                 <widget class="QLineEdit" name="mister_sr_v_shift"/>
+                </item>
+                <item row="14" column="0">
+                 <widget class="QLabel" name="mister_sr_v_shift_correct_label">
+                  <property name="text">
+                   <string>v_shift_correct:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="14" column="1">
+                 <widget class="QLineEdit" name="mister_sr_v_shift_correct"/>
+                </item>
+                <item row="15" column="0">
+                 <widget class="QLabel" name="mister_sr_pixel_precision_label">
+                  <property name="text">
+                   <string>pixel_precision:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="15" column="1">
+                 <widget class="QLineEdit" name="mister_sr_pixel_precision"/>
+                </item>
+                <item row="16" column="0">
+                 <widget class="QLabel" name="mister_sr_scale_proportional_label">
+                  <property name="text">
+                   <string>scale_proportional:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="16" column="1">
+                 <widget class="QLineEdit" name="mister_sr_scale_proportional"/>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QPushButton" name="mister_sr_reset">
+                <property name="text">
+                 <string>Reset advanced options</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="misterTabSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::MinimumExpanding</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="gb_description_mister">
+          <property name="title">
+           <string>Description</string>
+          </property>
+          <layout class="QVBoxLayout" name="gb_description_mister_layout">
+           <item>
+            <widget class="QLabel" name="description_mister">
+             <property name="text">
+              <string>Point your mouse at an option to display a description in here.
+
+</string>
+             </property>
+             <property name="textFormat">
+              <enum>Qt::PlainText</enum>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="inputTab">
        <attribute name="title">
         <string>I/O</string>

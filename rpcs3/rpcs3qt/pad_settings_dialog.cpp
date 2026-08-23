@@ -1570,6 +1570,7 @@ void pad_settings_dialog::ChangeHandler()
 	case pad_handler::keyboard: m_description = tooltips.gamepad_settings.keyboard; break;
 	case pad_handler::skateboard: m_description = tooltips.gamepad_settings.skateboard; break;
 	case pad_handler::move: m_description = tooltips.gamepad_settings.move; break;
+	case pad_handler::groovy_mister: m_description = tooltips.gamepad_settings.groovy_mister; break;
 #ifdef _WIN32
 	case pad_handler::xinput: m_description = tooltips.gamepad_settings.xinput; break;
 	case pad_handler::mm: m_description = tooltips.gamepad_settings.mmjoy; break;
@@ -2272,6 +2273,7 @@ QString pad_settings_dialog::GetLocalizedPadHandler(const QString& original, pad
 		case pad_handler::dualsense: return tr("DualSense");
 		case pad_handler::skateboard: return tr("Skateboard");
 		case pad_handler::move: return tr("PS Move");
+		case pad_handler::groovy_mister: return tr("GroovyMiSTer");
 #ifdef _WIN32
 		case pad_handler::xinput: return tr("XInput");
 		case pad_handler::mm: return tr("MMJoystick");
@@ -2297,6 +2299,7 @@ QString pad_settings_dialog::GetLocalizedPadName(pad_handler handler, const QStr
 		case pad_handler::dualsense: return tr("DualSense Pad #%0").arg(index);
 		case pad_handler::skateboard: return tr("Skateboard #%0").arg(index);
 		case pad_handler::move: return tr("PS Move #%0").arg(index);
+		case pad_handler::groovy_mister: break; // Device name ("MiSTer Joy #1/#2") already carries the index.
 #ifdef _WIN32
 		case pad_handler::xinput: return tr("XInput Pad #%0").arg(index);
 		case pad_handler::mm: return tr("Joystick #%0").arg(index);

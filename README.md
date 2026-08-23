@@ -35,7 +35,7 @@ If you are unsure about your work, open a discussion issue to talk it through wi
 
 ## Building
 
-See [BUILDING.md](BUILDING.md) for more information about how to setup an environment to build RPCS3.
+See the [building guide](https://wiki.rpcs3.net/index.php?title=Building) for more information about how to setup an environment to build RPCS3.
 
 ## Running
 

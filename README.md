@@ -1,6 +1,15 @@
-RPCS3
+RPCS3 w/ Groovy MiSTer NLC support
 =====
+Fork Notes
 
+<img width="947" height="950" alt="rpcs3_3" src="https://github.com/user-attachments/assets/26d894d4-dc19-451c-8284-3f6c0051f91e" />
+<img width="860" height="728" alt="rpcs3_2" src="https://github.com/user-attachments/assets/b5f98af0-1610-4eef-8085-85e50fbb57a2" />
+<img width="1635" height="862" alt="rpcs3_1" src="https://github.com/user-attachments/assets/0deb22be-6178-4c9a-b80f-33592457535f" />
+
+
+
+
+=====
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/RPCS3/rpcs3/rpcs3.yml?branch=master&logo=github&label=Actions)](https://github.com/RPCS3/rpcs3/actions/workflows/rpcs3.yml)
 [![RPCS3 Discord Server](https://img.shields.io/discord/272035812277878785?color=5865F2&label=RPCS3%20Discord&logo=discord&logoColor=white)](https://discord.gg/rpcs3)
 

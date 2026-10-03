@@ -49,6 +49,9 @@ GLGSRender::GLGSRender(utils::serial* ar) noexcept : GSRender(ar)
 
 	backend_config.supports_multidraw = true;
 	backend_config.supports_normalized_barycentrics = true;
+	backend_config.supports_hw_instanced_rendering = true;
+	// OpenGL 3.2+ defaults to GL_LAST_VERTEX_CONVENTION.
+	backend_config.supports_last_provoking_vertex = true;
 
 	if (g_cfg.video.antialiasing_level != msaa_level::none)
 	{
@@ -61,6 +64,9 @@ GLGSRender::GLGSRender(utils::serial* ar) noexcept : GSRender(ar)
 
 GLGSRender::~GLGSRender()
 {
+	// Force-release ZCULL-ctrl since it is a pointer to self.
+	zcull_ctrl.release();
+
 	if (m_frame)
 	{
 		m_frame->reset();
@@ -148,6 +154,9 @@ void GLGSRender::on_init_thread()
 	rsx_log.success("GL VERSION: %s", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
 	rsx_log.success("GLSL VERSION: %s", reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
 
+	// Update frame title after GL was initialized in order to show the proper GPU
+	m_frame->update_title();
+
 	const auto& gl_caps = gl::get_driver_caps();
 
 	std::vector<std::string> exception_reasons;
@@ -174,6 +183,12 @@ void GLGSRender::on_init_thread()
 	if (!gl_caps.ARB_texture_barrier_supported && !gl_caps.NV_texture_barrier_supported && !g_cfg.video.strict_rendering_mode)
 	{
 		rsx_log.warning("Texture barriers are not supported by your GPU. Feedback loops will have undefined results.");
+	}
+
+	if (!gl_caps.ARB_shader_storage_buffer_object_supported)
+	{
+		rsx_log.warning("[PERFORMANCE WARNING] SSBOs are not supported by your GPU. Some functionality such as hardware instancing will be unavailable.");
+		backend_config.supports_hw_instanced_rendering = false;
 	}
 
 	if (!gl_caps.ARB_bindless_texture_supported)
@@ -326,10 +341,16 @@ void GLGSRender::on_init_thread()
 	m_vertex_layout_buffer->create(gl::buffer::target::uniform, 16 * 0x100000);
 	m_raster_env_ring_buffer->create(gl::buffer::target::uniform, 16 * 0x100000);
 	m_scratch_ring_buffer->create(gl::buffer::target::uniform, 16 * 0x100000);
-	m_instancing_ring_buffer->create(gl::buffer::target::ssbo, 128 * 0x100000);
+
+	if (backend_config.supports_hw_instanced_rendering)
+	{
+		ensure(gl_caps.ARB_shader_storage_buffer_object_supported);
+		m_instancing_ring_buffer->create(gl::buffer::target::ssbo, 128 * 0x100000);
+	}
 
 	if (shadermode == shader_mode::async_with_interpreter || shadermode == shader_mode::interpreter_only)
 	{
+		ensure(gl_caps.ARB_shader_storage_buffer_object_supported);
 		m_vertex_instructions_buffer->create(gl::buffer::target::ssbo, 16 * 0x100000);
 		m_fragment_instructions_buffer->create(gl::buffer::target::ssbo, 16 * 0x100000);
 	}
@@ -681,34 +702,33 @@ void GLGSRender::clear_surface(u32 arg)
 				clear_cmd.clear_stencil.value = rsx::method_registers.stencil_clear_value();
 				clear_cmd.aspect_mask |= gl::image_aspect::stencil;
 			}
+		}
 
-			if (const auto ds_mask = (arg & RSX_GCM_CLEAR_DEPTH_STENCIL_MASK);
-				ds_mask != RSX_GCM_CLEAR_DEPTH_STENCIL_MASK || !full_frame)
+		if (clear_cmd.aspect_mask && (clear_cmd.aspect_mask != ds->aspect() || !full_frame))
+		{
+			const auto ds_mask = (arg & RSX_GCM_CLEAR_DEPTH_STENCIL_MASK);
+
+			if (ds->state_flags & rsx::surface_state_flags::erase_bkgnd &&  // Needs initialization
+				ds->old_contents.empty() && !g_cfg.video.read_depth_buffer) // No way to load data from memory, so no initialization given
 			{
-				ensure(clear_cmd.aspect_mask);
-
-				if (ds->state_flags & rsx::surface_state_flags::erase_bkgnd &&  // Needs initialization
-					ds->old_contents.empty() && !g_cfg.video.read_depth_buffer) // No way to load data from memory, so no initialization given
+				// Only one aspect was cleared. Make sure to memory initialize the other before removing dirty flag
+				if (ds_mask == RSX_GCM_CLEAR_DEPTH_BIT)
 				{
-					// Only one aspect was cleared. Make sure to memory initialize the other before removing dirty flag
-					if (ds_mask == RSX_GCM_CLEAR_DEPTH_BIT)
-					{
-						// Depth was cleared, initialize stencil
-						clear_cmd.clear_stencil.mask = 0xff;
-						clear_cmd.clear_stencil.value = 0xff;
-						clear_cmd.aspect_mask |= gl::image_aspect::stencil;
-					}
-					else if (ds_mask == RSX_GCM_CLEAR_STENCIL_BIT)
-					{
-						// Stencil was cleared, initialize depth
-						clear_cmd.clear_depth.value = 1.f;
-						clear_cmd.aspect_mask |= gl::image_aspect::depth;
-					}
+					// Depth was cleared, initialize stencil
+					clear_cmd.clear_stencil.mask = 0xff;
+					clear_cmd.clear_stencil.value = 0xff;
+					clear_cmd.aspect_mask |= gl::image_aspect::stencil;
 				}
-				else
+				else if (ds_mask == RSX_GCM_CLEAR_STENCIL_BIT)
 				{
-					ds->write_barrier(cmd);
+					// Stencil was cleared, initialize depth
+					clear_cmd.clear_depth.value = 1.f;
+					clear_cmd.aspect_mask |= gl::image_aspect::depth;
 				}
+			}
+			else
+			{
+				ds->write_barrier(cmd);
 			}
 		}
 
@@ -935,7 +955,7 @@ void GLGSRender::load_program_env()
 	const bool update_fragment_texture_env = m_graphics_state & rsx::pipeline_state::fragment_texture_state_dirty;
 	const bool update_instruction_buffers = !!m_interpreter_state && m_shader_interpreter.is_interpreter(m_program);
 	const bool update_raster_env = REGS(m_ctx)->polygon_stipple_enabled() && (m_graphics_state & rsx::pipeline_state::polygon_stipple_pattern_dirty);
-	const bool update_instancing_data = REGS(m_ctx)->current_draw_clause.is_trivial_instanced_draw;
+	const bool update_instancing_data = backend_config.supports_hw_instanced_rendering && REGS(m_ctx)->current_draw_clause.is_trivial_instanced_draw;
 
 	if (manually_flush_ring_buffers)
 	{
@@ -1323,11 +1343,11 @@ void GLGSRender::do_local_task(rsx::FIFO::state state)
 	{
 		std::lock_guard lock(queue_guard);
 
-		work_queue.remove_if([](auto &q) { return q.received; });
+		work_queue.remove_if([](auto &q) { return q.received.load(); });
 
 		for (auto& q : work_queue)
 		{
-			if (q.processed) continue;
+			if (q.processed.load()) continue;
 
 			gl::command_context cmd{ gl_state };
 			q.result = m_gl_texture_cache.flush_all(cmd, q.section_data);

@@ -28,9 +28,6 @@ public:
 		const QString debug_console_mode           = tr("Increases the amount of usable system memory to match a DECR console and more.\nCauses some software to behave differently than on retail hardware.");
 		const QString accurate_rsx_access          = tr("Forces RSX pauses on SPU MFC_GETLLAR and SPU MFC_PUTLLUC operations.");
 		const QString accurate_spu_dma             = tr("Accurately processes SPU DMA operations.");
-		const QString accurate_dfma                = tr("Use accurate double-precision FMA instructions in PPU and SPU backends.\nWhile disabling it might give a decent performance boost if your CPU doesn't support FMA, it may also introduce subtle bugs that otherwise do not occur.\nYou shouldn't disable it if your CPU supports FMA.");
-		const QString fixup_ppunj                  = tr("Legacy option. Fixup result vector values in Non-Java Mode in PPU LLVM.\nIf unsure, do not modify this setting.");
-		const QString fixup_ppuvnan                = tr("Fixup NaN results in vector instructions in PPU backends.\nIf unsure, do not modify this setting.");
 		const QString silence_all_logs             = tr("Stop writing any logs after game startup. Don't use unless you believe it's necessary.");
 		const QString read_color                   = tr("Initializes render target memory using vm memory.");
 		const QString read_depth                   = tr("Initializes render target memory using vm memory.");
@@ -43,13 +40,13 @@ public:
 		const QString disable_async_host_mm        = tr("Force host memory management calls to be inlined instead of handled asynchronously.\nThis can cause severe performance degradation and stuttering in some games.\nThis option is only needed by developers to debug problems with texture cache memory protection.");
 		const QString disable_spin_optimization    = tr("Disable SPU GETLLAR spin optimization.\nThis can cause severe performance degradation and stuttering in many games.\nThis option is only needed for a select number of games.");
 		const QString emulate_depth_compare        = tr("Emulate depth comparison operations where desktop hardware behavior differs from PS3, usually EQUAL comparison modes.\nFixes excessive shadow flickering and Z-fighting in some games.\nThis is most obvious in some games where the Z prepass depth format is different from the rasterization depth format, a scenario that will never work out correctly on compliant desktop hardware.");
+		const QString emulate_hdd_speed            = tr("May fix games that break when data loads faster than on a PS3 at the cost of longer loading times.\nIf unsure, do not use this option.");
 		const QString enable_spu_events_busy_loop  = tr("Enable SPU RdEventStat spin.\nThis increases CPU usage, this setting is beneficial for high-threaded CPUs (12+) with select number of games.");
 		const QString zcull_operation_mode         = tr("Changes ZCULL report synchronization behaviour. Experiment to find the best option for your game. Approximate mode is recommended for most games.\n· Precise is the most accurate to PS3 behaviour. Required for accurate visuals in some titles such as Demon's Souls and The Darkness.\n· Approximate is a much faster way to generate occlusion data which may not always match what the PS3 would generate. Works well with most PS3 games.\n· Relaxed changes the synchronization method completely and can greatly improve performance in some games or completely break others.");
 		const QString max_spurs_threads            = tr("Limits the maximum number of SPURS threads in each thread group.\nMay improve performance in some cases, especially on systems with limited number of hardware threads.\nLimiting the number of threads is likely to cause crashes; it's recommended to keep this at the default value.");
 		const QString sleep_timers_accuracy        = tr("Changes the sleep period accuracy.\n'As Host' uses default accuracy of the underlying operating system, while 'All Timers' attempts to improve it.\n'Usleep Only' limits the adjustments to usleep syscall only.\nCan affect performance in unexpected ways.");
 		const QString rsx_fifo_accuracy            = tr("\"Fast\" is the least accurate setting, RSX does not emulate atomic FIFO buffer.\n\"Atomic\" benefits stability greatly in many games with little performance penalty.\n\"Atomic & Ordered\" is the most accurate but it is the slowest and without much stability benefit in games.");
 		const QString vblank_rate                  = tr("Adjusts the frequency of vertical blanking signals that the emulator sends.\nAffects timing of events which rely on these signals.");
-		const QString vblank_ntsc_fixup            = tr("Multiplies the rate of VBLANK by 1000/1001 for values like 59.94Hz.\nKnown to fix the rhythm game Space Channel 5 Part 2");
 		const QString clocks_scale                 = tr("Changes the scale of emulated system time.\nAffects software which uses system time to calculate things such as dynamic timesteps.");
 		const QString wake_up_delay                = tr("Controls how much time it takes for RSX to start processing after waking up by the Cell processor.\nIncreasing wakeup delay improves stability, but very high values can lower RSX/GPU performance.\nIt is recommend to adjust this at 20µs to 40µs increments until the best value for optimal stability is reached.");
 		const QString disabled_from_global         = tr("Do not change this setting globally.\nRight-click a game in the game list and choose \"Configure\" instead.");
@@ -96,6 +93,8 @@ public:
 		const QString spu_block_size            = tr("This option controls the SPU analyser, particularly the size of compiled units. The Mega and Giga modes may improve performance by tying smaller units together, decreasing the number of compiled units but increasing their size.\nUse the Safe mode for maximum compatibility.");
 		const QString preferred_spu_threads     = tr("Some SPU stages are sensitive to race conditions and allowing a limited number at a time helps alleviate performance stalls.\nSetting this to a smaller value might improve performance and reduce stuttering in some games.\nLeave this on auto if performance is negatively affected when setting a small value.");
 		const QString max_cpu_preempt           = tr("Reduces CPU usage and power consumption, improving battery life on mobile devices. (0 means disabled)\nHigher values cause a more pronounced effect, but may cause audio or performance issues. A value of 50 or less is recommended.\nThis option forces an FPS limit because it's active when framerate is stable.\nThe lighter the game is on the hardware, the more power is saved by it. (until the preemption count barrier is reached)");
+		const QString ppu_reservation_priority  = tr("Give PPUs an execution advantage when the SPUs are using reservations.\nThis setting is recommended only for a few game for improving performance.\nDO NOT use it without being advised to due to potential performance degradation.");
+		const QString accurate_spu_reservations = tr("Accurately emulates SPU reservations.\nDisabling it can greatly improve performance.\nStability may be compromised in some games but not in others, disable only if advised.");
 
 		// debug
 
@@ -103,7 +102,7 @@ public:
 		const QString ppu_debug                    = tr("Creates PPU logs.\nOnly useful to developers.\nNever use this.");
 		const QString spu_debug                    = tr("Creates SPU logs.\nOnly useful to developers.\nNever use this.");
 		const QString mfc_debug                    = tr("Creates MFC logs.\nOnly useful to developers.\nNever use this.");
-		const QString set_daz_and_ftz              = tr("Sets special MXCSR flags to debug errors in SSE operations.\nOnly used in PPU thread when it's not precise.\nOnly useful to developers.\nNever use this.");
+		const QString set_daz_and_ftz              = tr("Sets special MXCSR flags to debug errors in SSE operations.\nAccelerates PPU performance at the cost of accuracy.");
 		const QString accurate_ppusat              = tr("Accurately set Saturation Bit values in PPU backends.\nIf unsure, do not modify this setting.");
 		const QString accurate_ppunj               = tr("Respect Non-Java Mode Bit values for vector ops in PPU backends.\nIf unsure, do not modify this setting.");
 		const QString accurate_ppuvnan             = tr("Accurately set NaN results in vector instructions in PPU backends.\nIf unsure, do not modify this setting.");
@@ -131,6 +130,7 @@ public:
 		const QString enable_performance_report    = tr("Measure certain events and print a chart after the emulator is stopped. Don't enable if not asked to.");
 		const QString num_ppu_threads              = tr("Affects maximum amount of PPU threads running concurrently, the value of 1 has very low compatibility with games.\n2 is the default, if unsure do not modify this setting.");
 		const QString disable_hw_texel_remapping   = tr("Disables use of hardware-native color-space remapping formats such as _sRGB and _SNORM suffixes.\nDisabling this option increases accuracy compared to PS3 but can also introduce some noise due to how the software emulation works.");
+		const QString disable_hw_blending          = tr("Force use of programmable blending for backends that support the feature.\nPurely a debugging option, you don't stand to gain anything by enabling this.");
 
 		// emulator
 
@@ -139,6 +139,7 @@ public:
 		const QString exit_on_stop                 = tr("Automatically close RPCS3 when closing a game, or when a game closes itself.");
 		const QString pause_on_focus_loss          = tr("Automatically pause emulation when RPCS3 loses its focus or the application is inactive in order to save power and reduce CPU usage.\nDo note that emulation pausing in general is not perfect and may not be compatible with all games.\nAlthough it currently also pauses gameplay, it is not recommended to rely on it as this behavior may be changed in the future and it is not the purpose of this setting.");
 		const QString start_game_fullscreen        = tr("Automatically puts the game window in fullscreen.\nDouble click on the game window or press Alt+Enter to toggle fullscreen and windowed mode.");
+		const QString start_big_picture_mode_on_boot = tr("Automatically opens Big Picture Mode's controller-friendly game grid when RPCS3 starts.");
 		const QString prevent_display_sleep        = tr("Prevent the display from sleeping while a game is running.\nThis requires the org.freedesktop.ScreenSaver D-Bus service on Linux.\nThis option will be disabled if the current platform does not support display sleep control.");
 		const QString game_window_title_format     = tr("Configure the game window title.\nChanging this and/or adding the framerate may cause buggy or outdated recording software to not notice RPCS3.");
 		const QString resize_on_boot               = tr("Automatically resizes the game window on boot.\nThis does not change the internal game resolution.");
@@ -216,6 +217,8 @@ public:
 
 		const QString texture_lod_bias = tr("Changes Texture sampling accuracy. (Small changes have a big effect.)\nAvoid using values outside the range of -12 to +12 if you're unsure.\n-3 to +3 is plenty for most usecases");
 
+		const QString blit_engine_scaling = tr("Disable upscaling on the RSX image scaling and rotation engine (NV3089) outputs.\nThis may fix some crashes and visual bugs in some games (e.g GT5, DJH2) that happen only when upscaling is being used.\nHowever, some games will appear as if they're running at 100% resolution regardless of the upscaling ratio used if this option is enabled.");
+
 		// gui
 
 		const QString log_limit          = tr("Sets the maximum amount of blocks that the log can display.\nThis usually equals the number of lines.\nSet 0 in order to remove the limit.");
@@ -254,7 +257,7 @@ public:
 		const QString background_input  = tr("Allows pad and keyboard input while the game window is unfocused.");
 		const QString show_move_cursor  = tr("Shows the raw position of the PS Move input.\nThis can be very helpful during calibration screens.");
 		const QString midi_devices      = tr("Select up to 3 emulated MIDI devices and their types.");
-		const QString sdl_mappings      = tr("Loads the SDL GameController database for improved gamepad compatibility. Only used in the SDL pad handler.");
+		const QString mouse_based_gyro  = tr("Enables mouse-based gyro emulation at game startup. It can also be toggled at any time with the associated hotkey.\nHold the right mouse button to activate gyro input: moving the mouse maps to the X and Z motion axes, and the scroll wheel maps to the Y axis. Release the button to reset the motion values.");
 
 		const QString lock_overlay_input_to_player_one  = tr("Locks the native overlay input to the first player.");
 

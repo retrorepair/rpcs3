@@ -212,25 +212,7 @@ namespace cfg
 			return def ? "true" : "false";
 		}
 
-		bool from_string(std::string_view value, bool /*dynamic*/ = false) override
-		{
-			if (value.size() != 4 && value.size() != 5)
-			{
-				return false;
-			}
-
-			char copy[5];
-			std::transform(value.begin(), value.end(), std::begin(copy), ::tolower);
-
-			if (value.size() == 5 && std::string_view{copy, 5} == "false")
-				m_value = false;
-			else if (value.size() == 4 && std::string_view{copy, 4} == "true")
-				m_value = true;
-			else
-				return false;
-
-			return true;
-		}
+		bool from_string(std::string_view value, bool dynamic = false) override;
 
 		void set(const bool& value)
 		{
@@ -707,6 +689,11 @@ namespace cfg
 			return *m_value.load().get();
 		}
 
+		std::string get() const
+		{
+			return *m_value.load().get();
+		}
+
 		std::string def_to_string() const override
 		{
 			return def;
@@ -716,6 +703,11 @@ namespace cfg
 		{
 			m_value = std::string(value);
 			return true;
+		}
+
+		void set(std::string_view value)
+		{
+			m_value = std::string(value);
 		}
 	};
 

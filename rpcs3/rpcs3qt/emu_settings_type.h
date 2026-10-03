@@ -41,7 +41,6 @@ enum class emu_settings_type
 	SleepTimersAccuracy,
 	ClocksScale,
 	PerformanceReport,
-	PPUNJFixup,
 	PPUVNANFixup,
 	AccurateDFMA,
 	AccuratePPUSAT,
@@ -52,6 +51,8 @@ enum class emu_settings_type
 	SPUProfiler,
 	DisableSpinOptimization,
 	EnabledSPUEventsBusyLoop,
+	PPUReservationPriorityOverSPUs,
+	AccurateSpuReservations,
 
 	// Graphics
 	Renderer,
@@ -111,7 +112,9 @@ enum class emu_settings_type
 	DisableAsyncHostMM,
 	UseReBAR,
 	RecordWithOverlays,
+	DisableHWBlending,
 	DisableHWTexelRemapping,
+	DisableBlitEngineScaling,
 
 	// Anaglyph Matrix
 	CustomAnaglyphMatrixLeft,
@@ -178,6 +181,7 @@ enum class emu_settings_type
 	GHLtar,
 	MidiDevices,
 	SDLMappings,
+	MouseBasedGyro,
 	IoDebugOverlay,
 	MouseDebugOverlay,
 
@@ -186,6 +190,7 @@ enum class emu_settings_type
 	StartOnBoot,
 	PauseOnFocusLoss,
 	StartGameFullscreen,
+	StartBigPictureModeOnBoot,
 	PreventDisplaySleep,
 	ShowTrophyPopups,
 	ShowRpcnPopups,
@@ -229,6 +234,7 @@ enum class emu_settings_type
 	EmptyHdd0Tmp,
 	LimitCacheSize,
 	MaximumCacheSize,
+	EmulateHddSpeed,
 
 	// MiSTer (GroovyMiSTer output)
 	MisterEnabled,

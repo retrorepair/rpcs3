@@ -129,3 +129,5 @@ CMakeUserPresets.json
 
 # Local dev
 .notes/
+# claude
+CLAUDE.md

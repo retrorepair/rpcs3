@@ -13,6 +13,33 @@
 
 namespace utils
 {
+	void clean_backtrace(std::vector<std::string>& result)
+	{
+		for (usz it = 1, first_in_seq = 0, del_count = 0;;)
+		{
+			if (it >= result.size() || result[it] != result[first_in_seq])
+			{
+				if (del_count)
+				{
+					fmt::append(result[first_in_seq], " x%u", del_count + 1);
+				}
+
+				if (it < result.size())
+				{
+					first_in_seq = it;
+					it++;
+					del_count = 0;
+					continue;
+				}
+
+				break;
+			}
+
+			result.erase(result.begin() + it);
+			del_count++;
+		}
+	}
+
 #ifdef _WIN32
 	std::string wstr_to_utf8(LPWSTR data, int str_len)
 	{
@@ -119,26 +146,27 @@ namespace utils
 
 			if (sym->NameLen)
 			{
-				const auto function_name = wstr_to_utf8(sym->Name, static_cast<int>(sym->NameLen));
+				std::string function_name = wstr_to_utf8(sym->Name, static_cast<int>(sym->NameLen));
 
 				// Attempt to get file and line information if available
 				DWORD unused2;
 				if (SymGetLineFromAddrW64(hProcess, reinterpret_cast<DWORD64>(pointer), &unused2, &line_info))
 				{
-					const auto full_path = fmt::format("%s:%u %s", wstr_to_utf8(line_info.FileName, -1), line_info.LineNumber, function_name);
-					result.push_back(full_path);
+					std::string full_path = fmt::format("%s:%u %s", wstr_to_utf8(line_info.FileName, -1), line_info.LineNumber, function_name);
+					result.push_back(std::move(full_path));
 				}
 				else
 				{
-					result.push_back(function_name);
+					result.push_back(std::move(function_name));
 				}
 			}
 			else
 			{
-				result.push_back(fmt::format("rpcs3@0xp", pointer));
+				result.push_back(fmt::format("rpcs3@0x%p", pointer));
 			}
 		}
 
+		clean_backtrace(result);
 		return result;
 	}
 #else
@@ -166,6 +194,7 @@ namespace utils
 
 		free(symbols);
 #endif
+		clean_backtrace(result);
 		return result;
 	}
 #endif

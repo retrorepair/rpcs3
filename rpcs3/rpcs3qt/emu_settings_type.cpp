@@ -47,7 +47,6 @@ const std::map<emu_settings_type, cfg_location> settings_location =
 	{ emu_settings_type::AccuratePPU128Loop,         get_cfg_location(local_cfg.core.ppu_128_reservations_loop_max_length) },
 	{ emu_settings_type::PerformanceReport,          get_cfg_location(local_cfg.core.perf_report) },
 	{ emu_settings_type::NumPPUThreads,              get_cfg_location(local_cfg.core.ppu_threads) },
-	{ emu_settings_type::PPUNJFixup,                 get_cfg_location(local_cfg.core.ppu_llvm_nj_fixup) },
 	{ emu_settings_type::PPUVNANFixup,               get_cfg_location(local_cfg.core.ppu_fix_vnan) },
 	{ emu_settings_type::AccurateDFMA,               get_cfg_location(local_cfg.core.use_accurate_dfma) },
 	{ emu_settings_type::AccuratePPUSAT,             get_cfg_location(local_cfg.core.ppu_set_sat_bit) },
@@ -58,6 +57,8 @@ const std::map<emu_settings_type, cfg_location> settings_location =
 	{ emu_settings_type::SPUProfiler,                get_cfg_location(local_cfg.core.spu_prof) },
 	{ emu_settings_type::DisableSpinOptimization,    get_cfg_location(local_cfg.core.spu_getllar_spin_optimization_disabled) },
 	{ emu_settings_type::EnabledSPUEventsBusyLoop,   get_cfg_location(local_cfg.core.spu_reservation_busy_waiting_enabled) },
+	{ emu_settings_type::PPUReservationPriorityOverSPUs, get_cfg_location(local_cfg.core.ppu_reservation_priority_over_spu) },
+	{ emu_settings_type::AccurateSpuReservations,    get_cfg_location(local_cfg.core.spu_accurate_reservations) },
 
 	// Graphics Tab
 	{ emu_settings_type::Renderer,                   get_cfg_location(local_cfg.video.renderer) },
@@ -111,8 +112,10 @@ const std::map<emu_settings_type, cfg_location> settings_location =
 	{ emu_settings_type::ForceHwMSAAResolve,         get_cfg_location(local_cfg.video.force_hw_MSAA_resolve) },
 	{ emu_settings_type::DisableAsyncHostMM,         get_cfg_location(local_cfg.video.disable_async_host_memory_manager) },
 	{ emu_settings_type::RecordWithOverlays,         get_cfg_location(local_cfg.video.record_with_overlays) },
-	{ emu_settings_type::DisableHWTexelRemapping,    get_cfg_location(local_cfg.video.disable_hardware_texel_remapping) },
+	{ emu_settings_type::DisableHWBlending,          get_cfg_location(local_cfg.video.disable_hardware_texel_remapping) },
+	{ emu_settings_type::DisableHWTexelRemapping,    get_cfg_location(local_cfg.video.disable_hardware_blending) },
 	{ emu_settings_type::FsrSharpeningStrength,      get_cfg_location(local_cfg.video.rcas_sharpening_intensity) },
+	{ emu_settings_type::DisableBlitEngineScaling,   get_cfg_location(local_cfg.video.disable_blit_engine_upscaling) },
 
 	// Vulkan
 	{ emu_settings_type::VulkanAdapter,                    get_cfg_location(local_cfg.video.vk.adapter) },
@@ -186,6 +189,7 @@ const std::map<emu_settings_type, cfg_location> settings_location =
 	{ emu_settings_type::GHLtar,                  get_cfg_location(local_cfg.io.ghltar) },
 	{ emu_settings_type::MidiDevices,             get_cfg_location(local_cfg.io.midi_devices) },
 	{ emu_settings_type::SDLMappings,             get_cfg_location(local_cfg.io.load_sdl_mappings) },
+	{ emu_settings_type::MouseBasedGyro,          get_cfg_location(local_cfg.io.mouse_based_gyro_enabled) },
 	{ emu_settings_type::IoDebugOverlay,          get_cfg_location(local_cfg.io.pad_debug_overlay) },
 	{ emu_settings_type::MouseDebugOverlay,       get_cfg_location(local_cfg.io.mouse_debug_overlay) },
 
@@ -194,6 +198,7 @@ const std::map<emu_settings_type, cfg_location> settings_location =
 	{ emu_settings_type::StartOnBoot,                     get_cfg_location(local_cfg.misc.autostart) },
 	{ emu_settings_type::PauseOnFocusLoss,                get_cfg_location(local_cfg.misc.autopause) },
 	{ emu_settings_type::StartGameFullscreen,             get_cfg_location(local_cfg.misc.start_fullscreen) },
+	{ emu_settings_type::StartBigPictureModeOnBoot,       get_cfg_location(local_cfg.misc.start_big_picture_mode) },
 	{ emu_settings_type::PreventDisplaySleep,             get_cfg_location(local_cfg.misc.prevent_display_sleep) },
 	{ emu_settings_type::ShowTrophyPopups,                get_cfg_location(local_cfg.misc.show_trophy_popups) },
 	{ emu_settings_type::ShowRpcnPopups,                  get_cfg_location(local_cfg.misc.show_rpcn_popups) },
@@ -237,6 +242,7 @@ const std::map<emu_settings_type, cfg_location> settings_location =
 	{ emu_settings_type::EmptyHdd0Tmp,          get_cfg_location(local_cfg.vfs.empty_hdd0_tmp) },
 	{ emu_settings_type::LimitCacheSize,        get_cfg_location(local_cfg.vfs.limit_cache_size) },
 	{ emu_settings_type::MaximumCacheSize,      get_cfg_location(local_cfg.vfs.cache_max_size) },
+	{ emu_settings_type::EmulateHddSpeed,       get_cfg_location(local_cfg.vfs.emulate_hdd_speed) },
 
 	// Savestates
 	{ emu_settings_type::SuspendEmulationSavestateMode,       get_cfg_location(local_cfg.savestate.suspend_emu) },

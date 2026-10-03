@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
 #include "iso_cache.h"
-#include "Loader/PSF.h"
 #include "util/yaml.hpp"
 #include "util/fnv_hash.hpp"
 #include "Utilities/File.h"
@@ -40,7 +39,7 @@ namespace
 
 namespace iso_cache
 {
-	bool load(const std::string& iso_path, const std::string& cache_key, iso_metadata_cache_entry& out_entry)
+	bool load(const std::string& iso_path, std::string_view cache_key, iso_metadata_cache_entry& out_entry)
 	{
 		fs::stat_t iso_stat{};
 		if (!fs::get_stat(iso_path, iso_stat) || iso_stat.is_directory)
@@ -95,7 +94,7 @@ namespace iso_cache
 		return true;
 	}
 
-	void save(const std::string& iso_path, const std::string& cache_key, const iso_metadata_cache_entry& entry)
+	void save(std::string_view iso_path, std::string_view cache_key, const iso_metadata_cache_entry& entry)
 	{
 		const std::string stem     = get_cache_stem(cache_key);
 		const std::string dir      = get_cache_dir();

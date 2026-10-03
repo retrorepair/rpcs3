@@ -2,9 +2,11 @@
 
 #include "stdafx.h"
 #include "usio.h"
+#include "MouseHandler.h"
 #include "Input/pad_thread.h"
 #include "Emu/Io/usio_config.h"
 #include "Emu/IdManager.h"
+#include "Emu/system_config.h"
 
 LOG_CHANNEL(usio_log, "USIO");
 
@@ -225,56 +227,56 @@ void usb_device_usio::translate_input_taiko()
 		if (const auto& pad = ::at32(handler->GetPads(), pad_number); pad->is_connected() && !pad->is_copilot() && is_input_allowed())
 		{
 			const auto& cfg = ::at32(g_cfg_usio.players, pad_number);
-			cfg->handle_input(pad, false, [&](usio_btn btn, pad_button /*pad_btn*/, u16 /*value*/, bool pressed, bool& /*abort*/)
+			cfg->handle_input(pad, false, [&](const auto& value, bool& /*abort*/)
 			{
-				switch (btn)
+				switch (value.btn)
 				{
 				case usio_btn::test:
 					if (player != 0) break;
-					if (pressed && !status.test_key_pressed) // Solve the need to hold the Test key
+					if (value.pressed && !status.test_key_pressed) // Solve the need to hold the Test key
 						status.test_on = !status.test_on;
-					status.test_key_pressed = pressed;
+					status.test_key_pressed = value.pressed;
 					break;
 				case usio_btn::coin:
 					if (player != 0) break;
-					if (pressed && !status.coin_key_pressed) // Ensure only one coin is inserted each time the Coin key is pressed
+					if (value.pressed && !status.coin_key_pressed) // Ensure only one coin is inserted each time the Coin key is pressed
 						status.coin_counter++;
-					status.coin_key_pressed = pressed;
+					status.coin_key_pressed = value.pressed;
 					break;
 				case usio_btn::service:
-					if (player == 0 && pressed)
+					if (player == 0 && value.pressed)
 						digital_input |= 0x4000;
 					break;
 				case usio_btn::enter:
-					if (player == 0 && pressed)
+					if (player == 0 && value.pressed)
 						digital_input |= 0x200;
 					break;
 				case usio_btn::up:
-					if (player == 0 && pressed)
+					if (player == 0 && value.pressed)
 						digital_input |= 0x2000;
 					break;
 				case usio_btn::down:
-					if (player == 0 && pressed)
+					if (player == 0 && value.pressed)
 						digital_input |= 0x1000;
 					break;
 				case usio_btn::taiko_hit_side_left:
-					if (pressed)
+					if (value.pressed)
 						std::memcpy(input_buf.data() + 32 + offset, &c_hit, sizeof(u16));
 					break;
 				case usio_btn::taiko_hit_center_right:
-					if (pressed)
+					if (value.pressed)
 						std::memcpy(input_buf.data() + 36 + offset, &c_hit, sizeof(u16));
 					break;
 				case usio_btn::taiko_hit_side_right:
-					if (pressed)
+					if (value.pressed)
 						std::memcpy(input_buf.data() + 38 + offset, &c_hit, sizeof(u16));
 					break;
 				case usio_btn::taiko_hit_center_left:
-					if (pressed)
+					if (value.pressed)
 						std::memcpy(input_buf.data() + 34 + offset, &c_hit, sizeof(u16));
 					break;
 				case usio_btn::card_tapping:
-					if (pressed)
+					if (value.pressed)
 						tap_card(player);
 					break;
 				default:
@@ -310,100 +312,101 @@ void usb_device_usio::translate_input_tekken()
 	const auto translate_from_pad = [&](usz pad_number, usz player)
 	{
 		const usz shift = (player % 2) * 24ULL;
-		auto& status = m_io_status[player / 2];
-		auto& input = digital_input[player / 2];
+		const usz io_index = player / 2;
+		auto& status = m_io_status[io_index];
+		auto& input = digital_input[io_index];
 
 		if (const auto& pad = ::at32(handler->GetPads(), pad_number); pad->is_connected() && !pad->is_copilot() && is_input_allowed())
 		{
 			const auto& cfg = ::at32(g_cfg_usio.players, pad_number);
-			cfg->handle_input(pad, false, [&](usio_btn btn, pad_button /*pad_btn*/, u16 /*value*/, bool pressed, bool& /*abort*/)
+			cfg->handle_input(pad, false, [&](const auto& value, bool& /*abort*/)
 			{
-				switch (btn)
+				switch (value.btn)
 				{
 				case usio_btn::test:
 					if (player % 2 != 0)
 						break;
-					if (pressed && !status.test_key_pressed) // Solve the need to hold the Test button
+					if (value.pressed && !status.test_key_pressed) // Solve the need to hold the Test button
 						status.test_on = !status.test_on;
-					status.test_key_pressed = pressed;
+					status.test_key_pressed = value.pressed;
 					break;
 				case usio_btn::coin:
 					if (player % 2 != 0)
 						break;
-					if (pressed && !status.coin_key_pressed) // Ensure only one coin is inserted each time the Coin button is pressed
+					if (value.pressed && !status.coin_key_pressed) // Ensure only one coin is inserted each time the Coin button is pressed
 						status.coin_counter++;
-					status.coin_key_pressed = pressed;
+					status.coin_key_pressed = value.pressed;
 					break;
 				case usio_btn::service:
-					if (player % 2 == 0 && pressed)
+					if (player % 2 == 0 && value.pressed)
 						input |= 0x4000;
 					break;
 				case usio_btn::enter:
-					if (pressed)
+					if (value.pressed)
 					{
-						input |= 0x800000ULL << shift;
+						input |= (g_cfg.io.usio_mode == usio_handler_mode::shooter_games ? 0x200ULL : 0x800000ULL) << shift;
 						if (player == 0)
 							digital_input_lm |= 0x800;
 					}
 					break;
 				case usio_btn::up:
-					if (pressed)
+					if (value.pressed)
 					{
-						input |= 0x200000ULL << shift;
+						input |= (g_cfg.io.usio_mode == usio_handler_mode::shooter_games ? 0x2000ULL : 0x200000ULL) << shift;
 						if (player == 0)
 							digital_input_lm |= 0x200;
 					}
 					break;
 				case usio_btn::down:
-					if (pressed)
+					if (value.pressed)
 					{
-						input |= 0x100000ULL << shift;
+						input |= (g_cfg.io.usio_mode == usio_handler_mode::shooter_games ? 0x1000ULL : 0x100000ULL) << shift;
 						if (player == 0)
 							digital_input_lm |= 0x400;
 					}
 					break;
 				case usio_btn::left:
-					if (pressed)
+					if (value.pressed)
 					{
-						input |= 0x80000ULL << shift;
+						input |= g_cfg.io.usio_mode == usio_handler_mode::shooter_games ? (player % 2 == 0 ? 0x800000ULL : 0x100000ULL) : (0x80000ULL << shift);
 						if (player == 0)
 							digital_input_lm |= 0x2000;
 					}
 					break;
 				case usio_btn::right:
-					if (pressed)
+					if (value.pressed)
 					{
-						input |= 0x40000ULL << shift;
+						input |= g_cfg.io.usio_mode == usio_handler_mode::shooter_games ? (player % 2 == 0 ? 0x400000ULL : 0x80000ULL) : (0x40000ULL << shift);
 						if (player == 0)
 							digital_input_lm |= 0x4000;
 					}
 					break;
-				case usio_btn::tekken_button1:
-					if (pressed)
+				case usio_btn::tekken_button1: // or "2D / 3D Switch" button for shooter games
+					if (value.pressed)
 					{
 						input |= 0x20000ULL << shift;
 						if (player == 0)
 							digital_input_lm |= 0x100;
 					}
 					break;
-				case usio_btn::tekken_button2:
-					if (pressed)
-						input |= 0x10000ULL << shift;
+				case usio_btn::tekken_button2: // or "Start" button for shooter games
+					if (value.pressed)
+						input |= g_cfg.io.usio_mode == usio_handler_mode::shooter_games ? (player % 2 == 0 ? 0x200000ULL : 0x40000ULL) : (0x10000ULL << shift);
 					break;
 				case usio_btn::tekken_button3:
-					if (pressed)
+					if (value.pressed)
 						input |= 0x40000000ULL << shift;
 					break;
 				case usio_btn::tekken_button4:
-					if (pressed)
+					if (value.pressed)
 						input |= 0x20000000ULL << shift;
 					break;
 				case usio_btn::tekken_button5:
-					if (pressed)
+					if (value.pressed)
 						input |= 0x80000000ULL << shift;
 					break;
 				case usio_btn::card_tapping:
-					if (pressed)
+					if (value.pressed)
 						tap_card(player);
 					break;
 				default:
@@ -420,10 +423,65 @@ void usb_device_usio::translate_input_tekken()
 		}
 	};
 
+	auto& mouse_handler = g_fxo->get<MouseHandlerBase>();
+	std::unique_lock mouse_lock(mouse_handler.mutex, std::defer_lock);
+
+	if (g_cfg.io.usio_mode == usio_handler_mode::shooter_games)
+	{
+		mouse_lock.lock();
+		mouse_handler.Init(4);
+	}
+
+	const auto translate_from_mouse = [&](usz mouse_number, usz player)
+	{
+		const usz player_index = player % 2;
+		const usz io_index = player / 2;
+		auto& status = m_io_status[io_index];
+		auto& input = digital_input[io_index];
+
+		const usz mouse_index = g_cfg.io.mouse == mouse_handler::basic ? 0 : mouse_number;
+		if (!is_input_allowed() || mouse_index >= mouse_handler.GetMice().size())
+			return;
+
+		const Mouse& mouse_data = ::at32(mouse_handler.GetMice(), mouse_index);
+		const auto is_pressed = [&mouse_data](MouseButtonCodes button) -> bool
+		{
+			return !!(mouse_data.buttons & button);
+		};
+
+		s8 current_wheel = 0;
+		MouseDataList& data_list = mouse_handler.GetDataList(mouse_number);
+		if (!data_list.empty())
+		{
+			const MouseData& current_data = data_list.front();
+			current_wheel = current_data.wheel * 0x10;
+			data_list.pop_front();
+		}
+		status.vital_sensors[player_index] += current_wheel;
+		status.wheel_rotation += current_wheel; // Multiple players can collaborate on turning the wheel
+
+		const le_t<u16> positions[2] = {static_cast<u16>(mouse_data.x_pos * USHRT_MAX), static_cast<u16>(mouse_data.y_pos * USHRT_MAX)};
+		std::memcpy(input_buf.data() - io_index * 0x80 + 0x100 + 32 + player_index * sizeof(u32), &positions, sizeof(u32));
+		std::memcpy(input_buf.data() - io_index * 0x80 + 0x100 + 41 + player_index * sizeof(s16), &status.vital_sensors[player_index], sizeof(s8));
+		std::memcpy(input_buf.data() - io_index * 0x80 + 0x100 + 48, &status.wheel_rotation, sizeof(s8));
+
+		if (is_pressed(CELL_MOUSE_BUTTON_1))
+			input |= player_index == 0 ? 0x800000ULL : 0x100000ULL; // Gun Trigger Left
+		if (is_pressed(CELL_MOUSE_BUTTON_2))
+			input |= player_index == 0 ? 0x400000ULL : 0x80000ULL; // Gun Trigger Right
+		if (is_pressed(CELL_MOUSE_BUTTON_3))
+			input |= player_index == 0 ? 0x200000ULL : 0x40000ULL; // Start
+	};
+
 	for (usz i = 0; i < m_io_status.size(); i++)
 		m_io_status[i].card_tapped = false;
 	for (usz i = 0; i < g_cfg_usio.players.size(); i++)
+	{
 		translate_from_pad(i, i);
+
+		if (g_cfg.io.usio_mode == usio_handler_mode::shooter_games)
+			translate_from_mouse(i, i);
+	}
 
 	for (usz i = 0; i < 2; i++)
 	{

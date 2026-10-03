@@ -4,6 +4,7 @@
 
 #include "Emu/RSX/RSXThread.h"
 #include "Emu/RSX/Common/BufferUtils.h"
+#include "Emu/system_config.h"
 
 #define RSX(ctx) ctx->rsxthr
 #define REGS(ctx) (&rsx::method_registers)
@@ -26,8 +27,10 @@ namespace rsx
 			const u32 constant_id = index / 4;
 			const u8 subreg = index % 4;
 			const u32 load = REGS(ctx)->transform_constant_load();
+			const u32 load_offset = load + constant_id;
 
-			REGS(ctx)->transform_constants[load + constant_id][subreg] = arg;
+			ensure(load_offset < 468);
+			REGS(ctx)->transform_constants[load_offset][subreg] = arg;
 		}
 
 		void set_transform_constant::batch_decode(context* ctx, u32 reg, const std::span<const u32>& args, const std::function<bool(context*, u32, u32)>& notify)
@@ -36,12 +39,14 @@ namespace rsx
 			const u32 constant_id = index / 4;
 			const u8 subreg = index % 4;
 			const u32 load = REGS(ctx)->transform_constant_load();
+			const u32 load_offset = load + constant_id;
+			const u32 last_constant_id = ((reg + ::size32(args) + 3) - NV4097_SET_TRANSFORM_CONSTANT) / 4; // Aligned div
 
-			auto dst = &REGS(ctx)->transform_constants[load + constant_id][subreg];
+			ensure(load < 468 && (load + last_constant_id) <= 468);
+			auto dst = &REGS(ctx)->transform_constants[load_offset][subreg];
 			copy_data_swap_u32(dst, args.data(), ::size32(args));
 
 			// Notify
-			const u32 last_constant_id = ((reg + ::size32(args) + 3) - NV4097_SET_TRANSFORM_CONSTANT) / 4; // Aligned div
 			const u32 load_index = load + constant_id;
 			const u32 load_count = last_constant_id - constant_id;
 
@@ -65,12 +70,12 @@ namespace rsx
 
 			// Get limit imposed by FIFO PUT (if put is behind get it will result in a number ignored by min)
 			const u32 fifo_read_limit = static_cast<u32>(((RSX(ctx)->ctrl->put & ~3ull) - (RSX(ctx)->fifo_ctrl->get_pos())) / 4);
-
 			const u32 count = std::min<u32>({ fifo_args_cnt, fifo_read_limit, method_range });
-
 			const u32 load = REGS(ctx)->transform_constant_load();
 
+			ensure(load + constant_id < 468);
 			u32 rcount = count;
+
 			if (const u32 max = (load + constant_id) * 4 + count + subreg, limit = 468 * 4; max > limit)
 			{
 				// Ignore addresses outside the usable [0, 467] range
@@ -183,11 +188,11 @@ namespace rsx
 				const usz first_index_off = 0;
 				const usz second_index_off = (((rcount / 4) - 1) / 2) * 4;
 
-				const u64 src_op1_2 = read_from_ptr<be_t<u64>>(fifo_span.data() + first_index_off);
-				const u64 src_op2_2 = read_from_ptr<be_t<u64>>(fifo_span.data() + second_index_off);
+				const u64 src_op1_2 = read_from_ptr<be_t<u64>>(fifo_span, first_index_off);
+				const u64 src_op2_2 = read_from_ptr<be_t<u64>>(fifo_span, second_index_off);
 
 				// Fast comparison
-				if (src_op1_2 != read_from_ptr<u64>(out_ptr + first_index_off) || src_op2_2 != read_from_ptr<u64>(out_ptr + second_index_off))
+				if (src_op1_2 != read_from_ptr_unsafe<u64>(out_ptr, first_index_off) || src_op2_2 != read_from_ptr_unsafe<u64>(out_ptr, second_index_off))
 				{
 					to_set_dirty = rsx::pipeline_state::vertex_program_ucode_dirty;
 				}
@@ -250,12 +255,26 @@ namespace rsx
 			const auto current = REGS(ctx)->decode<NV4097_SET_SURFACE_FORMAT>(arg);
 			const auto previous = REGS(ctx)->decode<NV4097_SET_SURFACE_FORMAT>(REGS(ctx)->latch);
 
-			if (current.is_integer_color_format() != previous.is_integer_color_format()) // Different ROP emulation
+			// Check for different ROP emulation
+			if (current.is_integer_color_format() != previous.is_integer_color_format())
 			{
 				RSX(ctx)->m_graphics_state |= rsx::pipeline_state::fragment_program_state_dirty;
 			}
 
-			if (*current.antialias() != *previous.antialias()) // Antialias control has changed, update ROP parameters
+			// If swizzle remap changed, we have to flag both the shader and the ROP parameters
+			if (current.is_remapped_format() != previous.is_remapped_format())
+			{
+				RSX(ctx)->m_graphics_state |=
+					rsx::pipeline_state::fragment_program_state_dirty |
+					rsx::pipeline_state::fragment_state_dirty;
+			}
+			// If we're still remapping outputs but the format changed, reload ROP params
+			else if ((current.is_remapped_format() && *current.color_fmt() != *previous.color_fmt()))
+			{
+				RSX(ctx)->m_graphics_state |= rsx::pipeline_state::fragment_state_dirty;
+			}
+			// If antialias control has changed, also update ROP parameters
+			else if (*current.antialias() != *previous.antialias())
 			{
 				RSX(ctx)->m_graphics_state |= rsx::pipeline_state::fragment_state_dirty;
 			}
@@ -658,6 +677,23 @@ namespace rsx
 			RSX(ctx)->enable_conditional_rendering(vm::cast(address_ptr));
 		}
 
+		void set_shading_mode(context* ctx, u32 reg, u32 arg)
+		{
+			if (arg == REGS(ctx)->latch)
+			{
+				return;
+			}
+
+			if (to_shading_mode(arg))
+			{
+				RSX(ctx)->m_graphics_state |= rsx::vertex_program_state_dirty | rsx::fragment_program_state_dirty;
+				return;
+			}
+
+			// Rollback
+			REGS(ctx)->decode(reg, REGS(ctx)->latch);
+		}
+
 		void set_zcull_render_enable(context* ctx, u32, u32)
 		{
 			RSX(ctx)->notify_zcull_info_changed();
@@ -688,8 +724,10 @@ namespace rsx
 			}
 
 			const u32 addr = RSX(ctx)->iomap_table.get_addr(0xf100000 + (index * 0x40));
-
 			ensure(addr != umax);
+
+			// Notify ticks are strongly ordered
+			RSX(ctx)->sync();
 
 			vm::_ptr<atomic_t<RsxNotify>>(addr)->store(
 			{

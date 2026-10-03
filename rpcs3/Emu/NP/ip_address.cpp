@@ -3,7 +3,6 @@
 #include "ip_address.h"
 #include "Utilities/StrFmt.h"
 #include "Emu/IdManager.h"
-#include "util/endian.hpp"
 #include "util/types.hpp"
 #include "Emu/NP/rpcn_config.h"
 #include "Emu/Cell/lv2/sys_net/sys_net_helpers.h"
@@ -66,7 +65,7 @@ namespace np
 		return sockaddr_ipv6;
 	}
 
-	u32 register_ip(const std::string& ip_bytes)
+	u32 register_ip(std::string_view ip_bytes)
 	{
 		if (ip_bytes.size() == 4)
 		{

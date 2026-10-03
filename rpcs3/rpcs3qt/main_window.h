@@ -28,8 +28,6 @@ class gui_pad_thread;
 
 struct gui_game_info;
 
-enum class game_boot_result : u32;
-
 namespace compat
 {
 	struct package_info;
@@ -70,13 +68,14 @@ class main_window : public QMainWindow
 	};
 
 public:
-	explicit main_window(std::shared_ptr<gui_settings> gui_settings, std::shared_ptr<emu_settings> emu_settings, std::shared_ptr<persistent_settings> persistent_settings, QWidget* parent = nullptr);
+	explicit main_window(std::shared_ptr<gui_settings> gui_settings, std::shared_ptr<emu_settings> emu_settings, std::shared_ptr<persistent_settings> persistent_settings, bool with_cli_boot, QWidget* parent = nullptr);
 	~main_window();
-	bool Init(bool with_cli_boot);
+	void show();
+	void Init();
 	QIcon GetAppIcon() const;
 	void OnMissingFw();
-	bool InstallPackages(QStringList file_paths = {}, bool from_boot = false);
-	void InstallPup(QString file_path = "");
+	static bool InstallPackages(main_window* mw, QStringList file_paths = {}, bool from_boot = false, bool from_optical_drive = false);
+	static void InstallPup(main_window* mw, QString file_path = "");
 
 Q_SIGNALS:
 	void RequestLanguageChange(const QString& language);
@@ -110,7 +109,6 @@ private Q_SLOTS:
 	void BootSavestate();
 	void BootRsxCapture(std::string path = "");
 	void DecryptSPRXLibraries();
-	void show_boot_error(game_boot_result status);
 
 	void SaveWindowState() const;
 	void SetIconSizeActions(int idx) const;
@@ -125,8 +123,9 @@ private Q_SLOTS:
 	void update_gui_pad_thread();
 
 protected:
-	void closeEvent(QCloseEvent *event) override;
-	void mouseDoubleClickEvent(QMouseEvent *event) override;
+	void closeEvent(QCloseEvent* event) override;
+	void changeEvent(QEvent* event) override;
+	void mouseDoubleClickEvent(QMouseEvent* event) override;
 	void dropEvent(QDropEvent* event) override;
 	void dragEnterEvent(QDragEnterEvent* event) override;
 	void dragMoveEvent(QDragMoveEvent* event) override;
@@ -142,12 +141,12 @@ private:
 	void PrecompileCachesFromInstalledPackages(const std::map<std::string, QString>& bootable_paths);
 	void ShowOptionalGamePreparations(const QString& title, const QString& message, std::map<std::string, QString> game_path);
 
-	static bool InstallFileInExData(const std::string& extension, const QString& path, const std::string& filename);
-
-	bool HandlePackageInstallation(QStringList file_paths, bool from_boot);
 	void CreateShortCuts(const std::map<std::string, QString>& paths, std::set<gui::utils::shortcut_location> locations);
 
-	void HandlePupInstallation(const QString& file_path, const QString& dir_path = "");
+	static bool InstallFileInExData(const std::string& extension, const QString& path, const std::string& filename);
+	static bool HandlePackageInstallation(main_window* mw, QStringList file_paths, bool from_boot, bool from_optical_drive);
+	static void HandlePupInstallation(main_window* mw, const QString& file_path, const QString& dir_path = "");
+
 	void ExtractPup();
 
 	void ExtractTar();
@@ -181,9 +180,11 @@ private:
 	QActionGroup* m_icon_size_act_group = nullptr;
 	QActionGroup* m_list_mode_act_group = nullptr;
 	QActionGroup* m_category_visible_act_group = nullptr;
+	QActionGroup* m_manage_game_collection_act_group = nullptr;
+	QActionGroup* m_view_game_collection_act_group = nullptr;
 
 	// Dockable widget frames
-	QMainWindow *m_mw = nullptr;
+	QMainWindow* m_mw = nullptr;
 	log_frame* m_log_frame = nullptr;
 	debugger_frame* m_debugger_frame = nullptr;
 	game_list_frame* m_game_list_frame = nullptr;
@@ -200,4 +201,6 @@ private:
 	std::unique_ptr<gui_pad_thread> m_gui_pad_thread;
 
 	system_state m_system_state = system_state::stopped;
+	bool m_with_cli_boot = false;
+	bool m_shown = false;
 };

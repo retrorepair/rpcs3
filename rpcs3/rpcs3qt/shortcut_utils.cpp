@@ -7,6 +7,7 @@
 #include "Emu/VFS.h"
 #include "Emu/vfs_config.h"
 #include "Emu/system_utils.hpp"
+#include "Emu/System.h"
 #include "Utilities/File.h"
 #include "Utilities/StrUtil.h"
 #include "Loader/ISO.h"
@@ -109,7 +110,7 @@ namespace gui::utils
 		return true;
 	}
 
-	static std::string make_simple_name(const std::string& name)
+	static std::string make_simple_name(std::string_view name)
 	{
 		const std::string simple_name = QString::fromStdString(vfs::escape(name, true)).simplified().toStdString();
 		return simple_name;
@@ -227,7 +228,7 @@ namespace gui::utils
 		Microsoft::WRL::ComPtr<IShellLink> pShellLink;
 		Microsoft::WRL::ComPtr<IPersistFile> pPersistFile;
 
-		const auto cleanup = [&](bool return_value, const std::string& fail_reason) -> bool
+		const auto cleanup = [&](bool return_value, std::string_view fail_reason) -> bool
 		{
 			if (!return_value) sys_log.error("Failed to create shortcut: %s", fail_reason);
 			CoUninitialize();
@@ -475,10 +476,8 @@ namespace gui::utils
 	{
 		if (!game || locations.empty()) return false;
 
-		std::string gameid_token_value;
-
 		const std::string dev_flash = g_cfg_vfs.get_dev_flash();
-		const bool is_archive = is_iso_file(game->info.path);
+		const bool is_archive = game->is_iso_file && is_iso_file(game->path);
 		std::shared_ptr<iso_archive> archive;
 
 		const auto file_exists = [&archive](const std::string& path)
@@ -486,15 +485,32 @@ namespace gui::utils
 			return archive ? archive->is_file(path) : fs::is_file(path);
 		};
 
+		// The game id token is primarily the Title ID found in param.sfo.
+		// During boot, we search for an entry in games.yml and for game folders with that ID.
+		// We append the actual folder name if the Title ID of the param.sfo does not match the folder name.
+		// e.g. Title ID is SLUS12345 but the actual folder is NPUB12345
+		std::string gameid_token_value;
+
+		const bool is_disc_without_patch = !is_archive && game->category == "DG" && !fs::is_file(rpcs3::utils::get_hdd0_dir() + "/game/" + game->serial + "/USRDIR/EBOOT.BIN");
+		const bool is_in_hdd0_game = !is_archive && !is_disc_without_patch && Emu.IsPathInsideDir(game->path, rpcs3::utils::get_hdd0_dir() + "game/");
+		const bool is_hdd_game_with_different_foldername = is_in_hdd0_game && game->category == "HG" && !fs::is_file(rpcs3::utils::get_hdd0_dir() + "/game/" + game->serial + "/USRDIR/EBOOT.BIN");
+		const bool is_ps1_game_with_different_foldername = is_in_hdd0_game && game->category == "1P" && !fs::is_file(rpcs3::utils::get_hdd0_dir() + "/game/" + game->serial + "/USRDIR/ISO.BIN.EDAT");
+
 		if (is_archive)
 		{
-			gameid_token_value = game->info.serial;
-			archive = std::make_shared<iso_archive>(game->info.path);
+			gameid_token_value = game->serial;
+			archive = std::make_shared<iso_archive>(game->path);
+
+			if (!archive->is_valid())
+			{
+				sys_log.error("Failed to create shortcut path '%s' (Failed to load ISO)", game->path);
+				return false;
+			}
 		}
-		else if (game->info.category == "DG" && !fs::is_file(rpcs3::utils::get_hdd0_dir() + "/game/" + game->info.serial + "/USRDIR/EBOOT.BIN"))
+		else if (is_disc_without_patch || is_hdd_game_with_different_foldername || is_ps1_game_with_different_foldername)
 		{
-			const usz ps3_game_dir_pos = fs::get_parent_dir(game->info.path).size();
-			std::string relative_boot_dir = game->info.path.substr(ps3_game_dir_pos);
+			const usz ps3_game_dir_pos = fs::get_parent_dir(game->path).size();
+			std::string relative_boot_dir = game->path.substr(ps3_game_dir_pos);
 
 			if (usz char_pos = relative_boot_dir.find_first_not_of(fs::delim); char_pos != umax)
 			{
@@ -509,31 +525,31 @@ namespace gui::utils
 			{
 				if (relative_boot_dir != "PS3_GAME")
 				{
-					gameid_token_value = game->info.serial + "/" + relative_boot_dir;
+					gameid_token_value = game->serial + "/" + relative_boot_dir;
 				}
 				else
 				{
-					gameid_token_value = game->info.serial;
+					gameid_token_value = game->serial;
 				}
 			}
 		}
 		else
 		{
-			gameid_token_value = game->info.serial;
+			gameid_token_value = game->serial;
 		}
 
-		const std::string target_icon_dir = fmt::format("%sIcons/game_icons/%s/", fs::get_config_dir(), game->info.serial);
+		const std::string target_icon_dir = fmt::format("%sIcons/game_icons/%s/", fs::get_config_dir(), game->serial);
 
 		if (!fs::create_path(target_icon_dir))
 		{
-			sys_log.error("Failed to create shortcut path %s (%s)", QString::fromStdString(game->info.name).simplified(), target_icon_dir, fs::g_tls_error);
+			sys_log.error("Failed to create shortcut path %s (%s)", QString::fromStdString(game->name).simplified(), target_icon_dir, fs::g_tls_error);
 			return false;
 		}
 
 		bool success = true;
-		const bool is_vsh = game->info.path.starts_with(dev_flash);
+		const bool is_vsh = game->path.starts_with(dev_flash);
 		const std::string cli_arg_token = is_vsh ? "RPCS3_VFS" : "RPCS3_GAMEID";
-		const std::string cli_arg_value = is_vsh ? ("dev_flash/" + game->info.path.substr(dev_flash.size())) : gameid_token_value;
+		const std::string cli_arg_value = is_vsh ? ("dev_flash/" + game->path.substr(dev_flash.size())) : gameid_token_value;
 
 		for (shortcut_location location : locations)
 		{
@@ -542,7 +558,7 @@ namespace gui::utils
 			if (location == shortcut_location::steam)
 			{
 				// Try to find a nice banner for steam
-				const std::string sfo_dir = is_archive ? "PS3_GAME" : rpcs3::utils::get_sfo_dir_from_game_path(game->info.path);
+				const std::string sfo_dir = is_archive ? "PS3_GAME" : rpcs3::utils::get_sfo_dir_from_game_path(game->path);
 
 				for (const std::string& filename : {"PIC1.PNG"s, "PIC3.PNG"s, "PIC0.PNG"s, "PIC2.PNG"s, "ICON0.PNG"s})
 				{
@@ -561,21 +577,21 @@ namespace gui::utils
 #endif
 			const std::string target_cli_args = fmt::format("--no-gui \"%s%s%s:%s\"", percent, cli_arg_token, percent, cli_arg_value);
 
-			if (!gameid_token_value.empty() && create_shortcut(game->info.name, game->icon_in_archive ? game->info.path : "", game->info.serial, target_cli_args, game->info.name, game->info.icon_path, target_icon_dir, banner_path, location, steam_sc, archive))
+			if (!gameid_token_value.empty() && create_shortcut(game->name, game->icon_in_archive ? game->path : "", game->serial, target_cli_args, game->name, game->icon_path, target_icon_dir, banner_path, location, steam_sc, archive))
 			{
 				if (location == shortcut_location::steam)
 				{
 					// Creation is done in caller
-					sys_log.notice("Prepared %s shortcut for '%s'", location, QString::fromStdString(game->info.name).simplified());
+					sys_log.notice("Prepared %s shortcut for '%s'", location, QString::fromStdString(game->name).simplified());
 				}
 				else
 				{
-					sys_log.success("Created %s shortcut for '%s'", location, QString::fromStdString(game->info.name).simplified());
+					sys_log.success("Created %s shortcut for '%s'", location, QString::fromStdString(game->name).simplified());
 				}
 			}
 			else
 			{
-				sys_log.error("Failed to create %s shortcut for '%s'", location, QString::fromStdString(game->info.name).simplified());
+				sys_log.error("Failed to create %s shortcut for '%s'", location, QString::fromStdString(game->name).simplified());
 				success = false;
 			}
 		}
@@ -611,7 +627,7 @@ namespace gui::utils
 		return result;
 	}
 
-	static void remove_shortcuts(const std::string& simple_name, [[maybe_unused]] const std::string& serial)
+	static void remove_shortcuts(std::string_view simple_name, [[maybe_unused]] const std::string& serial)
 	{
 		if (simple_name.empty() || simple_name == "." || simple_name == "..")
 		{

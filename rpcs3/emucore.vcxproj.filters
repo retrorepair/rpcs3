@@ -37,6 +37,9 @@
     <Filter Include="Emu\GPU\RSX\Null">
       <UniqueIdentifier>{4adca4fa-b90f-4662-9eb0-1d29cf3cd2eb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Emu\Audio\Groovy">
+      <UniqueIdentifier>{9fb8ac0b-9214-4eb9-ace2-3722f50c850c}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Emu\Audio\Null">
       <UniqueIdentifier>{1eae80f6-5aef-4049-81a0-bbfd7602f8f6}</UniqueIdentifier>
     </Filter>
@@ -66,9 +69,6 @@
     </Filter>
     <Filter Include="Emu\Audio\FAudio">
       <UniqueIdentifier>{7555ff6f-67a9-4d02-b744-0bf896751edb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Emu\Audio\Groovy">
-      <UniqueIdentifier>{9fb8ac0b-9214-4eb9-ace2-3722f50c850c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Emu\GPU\RSX\Program">
       <UniqueIdentifier>{d055ca32-157a-4d8c-895e-29509858fcb0}</UniqueIdentifier>
@@ -144,6 +144,9 @@
     </Filter>
     <Filter Include="Emu\GPU\RSX\Program\Assembler\Passes\FP">
       <UniqueIdentifier>{7fb59544-9761-4b4a-bb04-07deb43cf3c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Emu\GPU\RSX\Overlays\BigPicture">
+      <UniqueIdentifier>{37ae1158-fac7-4a4c-929a-115d8deb7505}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -984,9 +987,6 @@
     <ClCompile Include="Emu\Audio\AudioBackend.cpp">
       <Filter>Emu\Audio</Filter>
     </ClCompile>
-    <ClCompile Include="Emu\Audio\Groovy\GroovyMisterAudioTap.cpp">
-      <Filter>Emu\Audio\Groovy</Filter>
-    </ClCompile>
     <ClCompile Include="Emu\Io\pad_config.cpp">
       <Filter>Emu\Io</Filter>
     </ClCompile>
@@ -1153,6 +1153,9 @@
     <ClCompile Include="Emu\Io\camera_config.cpp">
       <Filter>Emu\Io</Filter>
     </ClCompile>
+    <ClCompile Include="Emu\Audio\Groovy\GroovyMisterAudioTap.cpp">
+      <Filter>Emu\Audio\Groovy</Filter>
+    </ClCompile>
     <ClCompile Include="Emu\Audio\audio_resampler.cpp">
       <Filter>Emu\Audio</Filter>
     </ClCompile>
@@ -1220,6 +1223,9 @@
       <Filter>Emu\GPU\RSX\Overlays\HomeMenu\Pages</Filter>
     </ClCompile>
     <ClCompile Include="Emu\RSX\Overlays\HomeMenu\overlay_home_menu_savestate.cpp">
+      <Filter>Emu\GPU\RSX\Overlays\HomeMenu\Pages</Filter>
+    </ClCompile>
+    <ClCompile Include="Emu\RSX\Overlays\HomeMenu\overlay_home_menu_sidebar_page.cpp">
       <Filter>Emu\GPU\RSX\Overlays\HomeMenu\Pages</Filter>
     </ClCompile>
     <ClCompile Include="Emu\RSX\Overlays\overlay_animated_icon.cpp">
@@ -1333,7 +1339,7 @@
     <ClCompile Include="Emu\RSX\gcm_printing.cpp">
       <Filter>Emu\GPU\RSX\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Emu\RSX\rsx_utils.cpp">
+    <ClCompile Include="Emu\RSX\Utils\rsx_utils.cpp">
       <Filter>Emu\GPU\RSX\Utils</Filter>
     </ClCompile>
     <ClCompile Include="Emu\RSX\rsx_vertex_data.cpp">
@@ -1420,6 +1426,9 @@
     <ClCompile Include="Loader\ISO.cpp">
       <Filter>Loader</Filter>
     </ClCompile>
+    <ClCompile Include="Loader\iso_cache.cpp">
+      <Filter>Loader</Filter>
+    </ClCompile>
     <ClCompile Include="Emu\RSX\Overlays\overlay_audio.cpp">
       <Filter>Emu\GPU\RSX\Overlays</Filter>
     </ClCompile>
@@ -1438,7 +1447,7 @@
     <ClCompile Include="Emu\RSX\Overlays\overlay_select.cpp">
       <Filter>Emu\GPU\RSX\Overlays</Filter>
     </ClCompile>
-    <ClCompile Include="Loader\iso_validation.cpp">
+    <ClCompile Include="Loader\content_validation.cpp">
       <Filter>Loader</Filter>
     </ClCompile>
     <ClCompile Include="..\Utilities\stereo_config.cpp">
@@ -1468,8 +1477,26 @@
     <ClCompile Include="Emu\Cell\Modules\libsvc1d.cpp">
       <Filter>Emu\Cell\Modules</Filter>
     </ClCompile>
-    <ClCompile Include="Loader\iso_cache.cpp">
-      <Filter>Loader</Filter>
+    <ClCompile Include="Emu\Io\gem_config.cpp">
+      <Filter>Emu\Io</Filter>
+    </ClCompile>
+    <ClCompile Include="Emu\RSX\Overlays\BigPicture\overlay_big_picture.cpp">
+      <Filter>Emu\GPU\RSX\Overlays\BigPicture</Filter>
+    </ClCompile>
+    <ClCompile Include="Emu\RSX\Overlays\BigPicture\overlay_big_picture_game_details.cpp">
+      <Filter>Emu\GPU\RSX\Overlays\BigPicture</Filter>
+    </ClCompile>
+    <ClCompile Include="Emu\RSX\Overlays\BigPicture\overlay_big_picture_game_grid.cpp">
+      <Filter>Emu\GPU\RSX\Overlays\BigPicture</Filter>
+    </ClCompile>
+    <ClCompile Include="Emu\RSX\Overlays\BigPicture\overlay_big_picture_main_menu.cpp">
+      <Filter>Emu\GPU\RSX\Overlays\BigPicture</Filter>
+    </ClCompile>
+    <ClCompile Include="Emu\RSX\Overlays\BigPicture\overlay_big_picture_game_info.cpp">
+      <Filter>Emu\GPU\RSX\Overlays\BigPicture</Filter>
+    </ClCompile>
+    <ClCompile Include="Emu\Cell\lv2\sys_bluetooth.cpp">
+      <Filter>Emu\Cell\lv2</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1654,6 +1681,9 @@
       <Filter>Emu\GPU\RSX\Common</Filter>
     </ClInclude>
     <ClInclude Include="Emu\RSX\Common\BufferUtils.h">
+      <Filter>Emu\GPU\RSX\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Emu\RSX\Common\BufferUtils_avx512.h">
       <Filter>Emu\GPU\RSX\Common</Filter>
     </ClInclude>
     <ClInclude Include="util\types.hpp">
@@ -1917,6 +1947,9 @@
     <ClInclude Include="Emu\Cell\Modules\cellSysconf.h">
       <Filter>Emu\Cell\Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Emu\Cell\Modules\cellSysmodule.h">
+      <Filter>Emu\Cell\Modules</Filter>
+    </ClInclude>
     <ClInclude Include="Emu\Cell\Modules\cellSysutil.h">
       <Filter>Emu\Cell\Modules</Filter>
     </ClInclude>
@@ -2154,9 +2187,6 @@
     <ClInclude Include="Emu\Audio\AudioBackend.h">
       <Filter>Emu\Audio</Filter>
     </ClInclude>
-    <ClInclude Include="Emu\Audio\Groovy\GroovyMisterAudioTap.h">
-      <Filter>Emu\Audio\Groovy</Filter>
-    </ClInclude>
     <ClInclude Include="Emu\Audio\Null\NullAudioBackend.h">
       <Filter>Emu\Audio\Null</Filter>
     </ClInclude>
@@ -2313,9 +2343,6 @@
     <ClInclude Include="util\init_mutex.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="util\slow_mutex.hpp">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="util\fifo_mutex.hpp">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -2467,6 +2494,9 @@
     <ClInclude Include="Emu\Io\camera_config.h">
       <Filter>Emu\Io</Filter>
     </ClInclude>
+    <ClInclude Include="Emu\Audio\Groovy\GroovyMisterAudioTap.h">
+      <Filter>Emu\Audio\Groovy</Filter>
+    </ClInclude>
     <ClInclude Include="Emu\Audio\audio_resampler.h">
       <Filter>Emu\Audio</Filter>
     </ClInclude>
@@ -2548,6 +2578,9 @@
     <ClInclude Include="Emu\Cell\lv2\sys_game.h">
       <Filter>Emu\Cell\lv2</Filter>
     </ClInclude>
+    <ClInclude Include="Emu\Cell\lv2\sys_bluetooth.h">
+      <Filter>Emu\Cell\lv2</Filter>
+    </ClInclude>
     <ClInclude Include="util\video_provider.h">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -2594,6 +2627,9 @@
       <Filter>Emu\GPU\RSX\Overlays\HomeMenu\Pages</Filter>
     </ClInclude>
     <ClInclude Include="Emu\RSX\Overlays\HomeMenu\overlay_home_menu_savestate.h">
+      <Filter>Emu\GPU\RSX\Overlays\HomeMenu\Pages</Filter>
+    </ClInclude>
+    <ClInclude Include="Emu\RSX\Overlays\HomeMenu\overlay_home_menu_sidebar_page.h">
       <Filter>Emu\GPU\RSX\Overlays\HomeMenu\Pages</Filter>
     </ClInclude>
     <ClInclude Include="Emu\RSX\Overlays\overlay_loading_icon.hpp">
@@ -2779,9 +2815,6 @@
     <ClInclude Include="Emu\RSX\gcm_printing.h">
       <Filter>Emu\GPU\RSX\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Emu\RSX\rsx_utils.h">
-      <Filter>Emu\GPU\RSX\Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Emu\RSX\rsx_vertex_data.h">
       <Filter>Emu\GPU\RSX\Host Mini-Driver</Filter>
     </ClInclude>
@@ -2809,7 +2842,16 @@
     <ClInclude Include="Emu\RSX\display.h">
       <Filter>Emu\GPU\RSX\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Emu\RSX\color_utils.h">
+    <ClInclude Include="Emu\RSX\Utils\algorithm.hpp">
+      <Filter>Emu\GPU\RSX\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Emu\RSX\Utils\color_utils.hpp">
+      <Filter>Emu\GPU\RSX\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Emu\RSX\Utils\image_utils.hpp">
+      <Filter>Emu\GPU\RSX\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Emu\RSX\Utils\rsx_utils.h">
       <Filter>Emu\GPU\RSX\Utils</Filter>
     </ClInclude>
     <ClInclude Include="Emu\RSX\Host\RSXDMAWriter.h">
@@ -2893,6 +2935,9 @@
     <ClInclude Include="Loader\ISO.h">
       <Filter>Loader</Filter>
     </ClInclude>
+    <ClInclude Include="Loader\iso_cache.h">
+      <Filter>Loader</Filter>
+    </ClInclude>
     <ClInclude Include="Emu\RSX\Overlays\overlay_audio.h">
       <Filter>Emu\GPU\RSX\Overlays</Filter>
     </ClInclude>
@@ -2917,7 +2962,7 @@
     <ClInclude Include="Emu\RSX\Common\aligned_malloc.hpp">
       <Filter>Emu\GPU\RSX\Common</Filter>
     </ClInclude>
-    <ClInclude Include="Loader\iso_validation.h">
+    <ClInclude Include="Loader\content_validation.h">
       <Filter>Loader</Filter>
     </ClInclude>
     <ClInclude Include="..\Utilities\stereo_config.h">
@@ -2950,8 +2995,35 @@
     <ClInclude Include="Emu\Cell\Modules\libsvc1d.h">
       <Filter>Emu\Cell\Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Loader\iso_cache.h">
-      <Filter>Loader</Filter>
+    <ClInclude Include="Emu\RSX\Common\texture_cache_blit_helpers.h">
+      <Filter>Emu\GPU\RSX\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Emu\RSX\Overlays\BigPicture\overlay_big_picture_main_menu.h">
+      <Filter>Emu\GPU\RSX\Overlays\BigPicture</Filter>
+    </ClInclude>
+    <ClInclude Include="Emu\RSX\Overlays\BigPicture\overlay_big_picture.h">
+      <Filter>Emu\GPU\RSX\Overlays\BigPicture</Filter>
+    </ClInclude>
+    <ClInclude Include="Emu\RSX\Overlays\BigPicture\overlay_big_picture_game_details.h">
+      <Filter>Emu\GPU\RSX\Overlays\BigPicture</Filter>
+    </ClInclude>
+    <ClInclude Include="Emu\RSX\Overlays\BigPicture\overlay_big_picture_game_grid.h">
+      <Filter>Emu\GPU\RSX\Overlays\BigPicture</Filter>
+    </ClInclude>
+    <ClInclude Include="Emu\game_enumeration.h">
+      <Filter>Emu</Filter>
+    </ClInclude>
+    <ClInclude Include="Emu\RSX\Overlays\BigPicture\overlay_big_picture_game_info.h">
+      <Filter>Emu\GPU\RSX\Overlays\BigPicture</Filter>
+    </ClInclude>
+    <ClInclude Include="Emu\Cell\lv2\sys_bluetooth.h">
+      <Filter>Emu\Cell\lv2</Filter>
+    </ClInclude>
+    <ClInclude Include="util\cctype.hpp">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Emu\emu_callbacks.h">
+      <Filter>Emu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

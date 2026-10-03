@@ -2,6 +2,7 @@
 #include "Config.h"
 #include "util/types.hpp"
 #include "util/yaml.hpp"
+#include "util/cctype.hpp"
 
 #include <charconv>
 
@@ -269,6 +270,8 @@ bool try_to_string(std::string* out, f64 value, std::string_view name)
 
 bool cfg::try_to_enum_value(u64* out, decltype(&fmt_class_string<int>::format) func, std::string_view value, std::string_view name)
 {
+	ensure(func);
+
 	u64 max = umax;
 
 	for (u64 i = 0;; i++)
@@ -297,7 +300,7 @@ bool cfg::try_to_enum_value(u64* out, decltype(&fmt_class_string<int>::format) f
 	const char* end = start + value.size();
 	int base = 10;
 
-	if (start[0] == '0' && (start[1] == 'x' || start[1] == 'X'))
+	if (value.size() >= 2 && start[0] == '0' && (start[1] == 'x' || start[1] == 'X'))
 	{
 		// Limited hex support
 		base = 16;
@@ -710,6 +713,26 @@ bool cfg::node::validate(std::string_view value)
 	return false;
 }
 
+bool cfg::_bool::from_string(std::string_view value, bool /*dynamic*/)
+{
+	if (value.size() != 4 && value.size() != 5)
+	{
+		return false;
+	}
+
+	char copy[5];
+	std::transform(value.begin(), value.end(), std::begin(copy), utils::tolower<char>);
+
+	if (value.size() == 5 && std::string_view{copy, 5} == "false")
+		m_value = false;
+	else if (value.size() == 4 && std::string_view{copy, 4} == "true")
+		m_value = true;
+	else
+		return false;
+
+	return true;
+}
+
 std::string cfg::map_entry::get_value(std::string_view key)
 {
 	if (auto it = m_map.find(key); it != m_map.end())
@@ -755,7 +778,7 @@ void cfg::log_entry::from_default()
 
 std::pair<u16, u16> cfg::device_info::get_usb_ids() const
 {
-	auto string_to_hex = [](const std::string& str) -> u16
+	auto string_to_hex = [](std::string_view str) -> u16
 	{
 		u16 value = 0x0000;
 		if (!str.empty() && std::from_chars(str.data(), str.data() + str.size(), value, 16).ec != std::errc{})

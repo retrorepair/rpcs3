@@ -11,12 +11,14 @@
 #endif
 extern "C" {
 #include "3rdparty/fusion/fusion/Fusion/FusionAhrs.h"
+#include "3rdparty/fusion/fusion/Fusion/FusionBias.h"
 }
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop
 #endif
 
 #include <cmath>
+#include <numbers>
 #include <functional>
 #include <string>
 #include <set>
@@ -49,11 +51,38 @@ public:
 	bool enable_player_leds{};
 	bool update_player_leds{true};
 
+	steady_clock::time_point last_reconnect_attempt{};
+
 	std::shared_ptr<FusionAhrs> ahrs; // Used to calculate quaternions from sensor data
 	u64 last_ahrs_update_time_us = 0; // Last ahrs update
+	bool ahrs_drift_correction = false; // Continuously correct the inclination using the accelerometer and estimate the gyro bias
+	f32 ahrs_sample_rate = 0.0f; // Sample rate that the AHRS settings were applied with
+	f32 ahrs_measured_sample_rate = 0.0f; // Smoothed measured sample rate
+
+	// Run-time estimation of the gyro offset (only used with drift correction).
+	// This is a sensor property, so it is kept across orientation resets. Reset it if a different device is connected.
+	FusionBias gyro_bias{};
+	bool gyro_bias_initialized = false;
+
+	// Sensor samples (accelerometer in G, gyro in rad/s) for the next orientation update.
+	// By default, update_orientation uses the current values in move_data and the time since the last update.
+	// Handlers that set queues_imu_samples queue their own samples instead (e.g. once per input report).
+	struct imu_sample
+	{
+		ps_move_data::vect<3> accelerometer{};
+		ps_move_data::vect<3> gyro{};
+	};
+	bool queues_imu_samples = false;
+	std::array<imu_sample, 2> imu_samples{};
+	u32 imu_sample_count = 0;
+	f32 imu_sample_delta_time = 0.0f; // Seconds per sample
 
 	void update_orientation(ps_move_data& move_data);
 	void reset_orientation();
+
+private:
+	// Feeds one sensor sample to the AHRS and updates move_data.quaternion. Returns false if the sample was discarded.
+	bool update_ahrs(ps_move_data& move_data, const imu_sample& sample, f32 elapsed_sec);
 };
 
 struct pad_ensemble
@@ -193,7 +222,7 @@ protected:
 	std::shared_ptr<Pad> m_pad_for_pad_settings;
 
 	// Search an unordered map for a string value and return the found combos
-	static std::vector<std::set<u32>> find_key_combos(const std::unordered_map<u32, std::string>& map, const std::string& cfg_string);
+	static std::vector<std::set<u32>> find_key_combos(const std::unordered_map<u32, std::string>& map, std::string_view cfg_string);
 
 	// Search an unordered map for a combo and return the found key codes
 	static std::set<u32> find_key_codes(const std::unordered_map<u32, std::string>& map, const pad::combo& combo);
@@ -292,16 +321,14 @@ public:
 	virtual void get_motion_sensors(const std::string& pad_id, const motion_callback& callback, const motion_fail_callback& fail_callback, motion_preview_values preview_values, const std::array<AnalogSensor, 4>& sensors);
 	virtual std::unordered_map<u32, std::string> get_motion_axis_list() const { return {}; }
 
-	static constexpr f32 PI = 3.14159265f;
-
 	static f32 degree_to_rad(f32 degree)
 	{
-		return degree * PI / 180.0f;
+		return degree * std::numbers::pi_v<f32> / 180.0f;
 	}
 
 	static f32 rad_to_degree(f32 radians)
 	{
-		return radians * 180.0f / PI;
+		return radians * 180.0f / std::numbers::pi_v<f32>;
 	};
 
 private:
@@ -324,7 +351,7 @@ protected:
 	virtual void get_mapping(const pad_ensemble& binding);
 	void TranslateButtonPress(const std::shared_ptr<PadDevice>& device, u32 keyCode, bool& pressed, u16& val, bool use_stick_multipliers, bool ignore_stick_threshold = false, bool ignore_trigger_threshold = false);
 	void init_configs();
-	cfg_pad* get_config(const std::string& pad_id);
+	cfg_pad* get_config(std::string_view pad_id);
 
 	static void set_raw_orientation(ps_move_data& move_data, f32 accel_x, f32 accel_y, f32 accel_z, f32 gyro_x, f32 gyro_y, f32 gyro_z);
 	static void set_raw_orientation(Pad& pad);

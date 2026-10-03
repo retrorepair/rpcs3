@@ -13,6 +13,7 @@
 #include "Emu/Io/Keyboard.h"
 
 #include "util/yaml.hpp"
+#include "util/cctype.hpp"
 #include "Utilities/File.h"
 #include "Utilities/Config.h"
 
@@ -91,30 +92,10 @@ namespace
 	}
 }
 
-emu_settings::emu_settings()
+emu_settings::emu_settings(std::shared_ptr<render_creator> r_creator)
 	: QObject()
+	, m_render_creator(ensure(r_creator))
 {
-}
-
-bool emu_settings::Init()
-{
-	m_render_creator = new render_creator(this);
-
-	if (m_render_creator->abort_requested)
-	{
-		return false;
-	}
-
-	// Make Vulkan default setting if it is supported
-	if (m_render_creator->Vulkan.supported && !m_render_creator->Vulkan.adapters.empty())
-	{
-		const std::string adapter = ::at32(m_render_creator->Vulkan.adapters, 0).toStdString();
-		cfg_log.notice("Setting the default renderer to Vulkan. Default GPU: '%s'", adapter);
-		Emu.SetDefaultRenderer(video_renderer::vulkan);
-		Emu.SetDefaultGraphicsAdapter(adapter);
-	}
-
-	return true;
 }
 
 void emu_settings::LoadSettings(const std::string& title_id, bool create_config_from_global, const std::string& db_config)
@@ -464,7 +445,7 @@ void emu_settings::EnhanceCheckBox(QCheckBox* checkbox, emu_settings_type type)
 	}
 
 	std::string def = GetSettingDefault(type);
-	std::transform(def.begin(), def.end(), def.begin(), ::tolower);
+	std::transform(def.begin(), def.end(), def.begin(), utils::tolower<char>);
 
 	if (def != "true" && def != "false")
 	{
@@ -473,7 +454,7 @@ void emu_settings::EnhanceCheckBox(QCheckBox* checkbox, emu_settings_type type)
 	}
 
 	std::string selected = GetSetting(type);
-	std::transform(selected.begin(), selected.end(), selected.begin(), ::tolower);
+	std::transform(selected.begin(), selected.end(), selected.begin(), utils::tolower<char>);
 
 	if (selected == "true")
 	{
@@ -1161,6 +1142,8 @@ QString emu_settings::GetLocalizedSetting(const QString& original, emu_settings_
 		case microphone_handler::singstar: return tr("SingStar", "Microphone handler");
 		case microphone_handler::real_singstar: return tr("Real SingStar", "Microphone handler");
 		case microphone_handler::rocksmith: return tr("Rocksmith", "Microphone handler");
+		case microphone_handler::eye_toy: return tr("Eye Toy", "Microphone handler");
+		case microphone_handler::ps_eye: return tr("PS Eye", "Microphone handler");
 		}
 		break;
 	case emu_settings_type::KeyboardHandler:

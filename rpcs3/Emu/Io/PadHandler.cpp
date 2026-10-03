@@ -11,7 +11,7 @@ PadHandlerBase::PadHandlerBase(pad_handler type) : m_type(type)
 {
 }
 
-std::vector<std::set<u32>> PadHandlerBase::find_key_combos(const std::unordered_map<u32, std::string>& map, const std::string& cfg_string)
+std::vector<std::set<u32>> PadHandlerBase::find_key_combos(const std::unordered_map<u32, std::string>& map, std::string_view cfg_string)
 {
 	std::vector<std::set<u32>> key_codes;
 
@@ -232,7 +232,7 @@ pad_capabilities PadHandlerBase::get_capabilities(const std::string& /*pad_id*/)
 	};
 }
 
-cfg_pad* PadHandlerBase::get_config(const std::string& pad_id)
+cfg_pad* PadHandlerBase::get_config(std::string_view pad_id)
 {
 	int index = 0;
 
@@ -626,52 +626,52 @@ std::array<std::vector<std::set<u32>>, PadHandlerBase::button::button_count> Pad
 		return find_key_combos(button_list, cfg_string);
 	};
 
-	mapping[button::up]       = map_button(cfg->up);
-	mapping[button::down]     = map_button(cfg->down);
-	mapping[button::left]     = map_button(cfg->left);
-	mapping[button::right]    = map_button(cfg->right);
-	mapping[button::cross]    = map_button(cfg->cross);
-	mapping[button::square]   = map_button(cfg->square);
-	mapping[button::circle]   = map_button(cfg->circle);
-	mapping[button::triangle] = map_button(cfg->triangle);
-	mapping[button::start]    = map_button(cfg->start);
-	mapping[button::select]   = map_button(cfg->select);
-	mapping[button::l1]       = map_button(cfg->l1);
-	mapping[button::l2]       = map_button(cfg->l2);
-	mapping[button::l3]       = map_button(cfg->l3);
-	mapping[button::r1]       = map_button(cfg->r1);
-	mapping[button::r2]       = map_button(cfg->r2);
-	mapping[button::r3]       = map_button(cfg->r3);
-	mapping[button::ls_left]  = map_button(cfg->ls_left);
-	mapping[button::ls_right] = map_button(cfg->ls_right);
-	mapping[button::ls_down]  = map_button(cfg->ls_down);
-	mapping[button::ls_up]    = map_button(cfg->ls_up);
-	mapping[button::rs_left]  = map_button(cfg->rs_left);
-	mapping[button::rs_right] = map_button(cfg->rs_right);
-	mapping[button::rs_down]  = map_button(cfg->rs_down);
-	mapping[button::rs_up]    = map_button(cfg->rs_up);
-	mapping[button::ps]       = map_button(cfg->ps);
+	mapping[button::up]       = map_button(cfg->up.to_string());
+	mapping[button::down]     = map_button(cfg->down.to_string());
+	mapping[button::left]     = map_button(cfg->left.to_string());
+	mapping[button::right]    = map_button(cfg->right.to_string());
+	mapping[button::cross]    = map_button(cfg->cross.to_string());
+	mapping[button::square]   = map_button(cfg->square.to_string());
+	mapping[button::circle]   = map_button(cfg->circle.to_string());
+	mapping[button::triangle] = map_button(cfg->triangle.to_string());
+	mapping[button::start]    = map_button(cfg->start.to_string());
+	mapping[button::select]   = map_button(cfg->select.to_string());
+	mapping[button::l1]       = map_button(cfg->l1.to_string());
+	mapping[button::l2]       = map_button(cfg->l2.to_string());
+	mapping[button::l3]       = map_button(cfg->l3.to_string());
+	mapping[button::r1]       = map_button(cfg->r1.to_string());
+	mapping[button::r2]       = map_button(cfg->r2.to_string());
+	mapping[button::r3]       = map_button(cfg->r3.to_string());
+	mapping[button::ls_left]  = map_button(cfg->ls_left.to_string());
+	mapping[button::ls_right] = map_button(cfg->ls_right.to_string());
+	mapping[button::ls_down]  = map_button(cfg->ls_down.to_string());
+	mapping[button::ls_up]    = map_button(cfg->ls_up.to_string());
+	mapping[button::rs_left]  = map_button(cfg->rs_left.to_string());
+	mapping[button::rs_right] = map_button(cfg->rs_right.to_string());
+	mapping[button::rs_down]  = map_button(cfg->rs_down.to_string());
+	mapping[button::rs_up]    = map_button(cfg->rs_up.to_string());
+	mapping[button::ps]       = map_button(cfg->ps.to_string());
 
-	mapping[button::skateboard_ir_nose]    = map_button(cfg->ir_nose);
-	mapping[button::skateboard_ir_tail]    = map_button(cfg->ir_tail);
-	mapping[button::skateboard_ir_left]    = map_button(cfg->ir_left);
-	mapping[button::skateboard_ir_right]   = map_button(cfg->ir_right);
-	mapping[button::skateboard_tilt_left]  = map_button(cfg->tilt_left);
-	mapping[button::skateboard_tilt_right] = map_button(cfg->tilt_right);
+	mapping[button::skateboard_ir_nose]    = map_button(cfg->ir_nose.to_string());
+	mapping[button::skateboard_ir_tail]    = map_button(cfg->ir_tail.to_string());
+	mapping[button::skateboard_ir_left]    = map_button(cfg->ir_left.to_string());
+	mapping[button::skateboard_ir_right]   = map_button(cfg->ir_right.to_string());
+	mapping[button::skateboard_tilt_left]  = map_button(cfg->tilt_left.to_string());
+	mapping[button::skateboard_tilt_right] = map_button(cfg->tilt_right.to_string());
 
 	if (b_has_pressure_intensity_button)
 	{
-		mapping[button::pressure_intensity_button] = map_button(cfg->pressure_intensity_button);
+		mapping[button::pressure_intensity_button] = map_button(cfg->pressure_intensity_button.to_string());
 	}
 
 	if (b_has_analog_limiter_button)
 	{
-		mapping[button::analog_limiter_button] = map_button(cfg->analog_limiter_button);
+		mapping[button::analog_limiter_button] = map_button(cfg->analog_limiter_button.to_string());
 	}
 
 	if (b_has_orientation)
 	{
-		mapping[button::orientation_reset_button] = map_button(cfg->orientation_reset_button);
+		mapping[button::orientation_reset_button] = map_button(cfg->orientation_reset_button.to_string());
 	}
 
 	if (!unknown_names.empty())
@@ -1005,6 +1005,14 @@ void PadHandlerBase::get_orientation(const pad_ensemble& binding) const
 		return;
 	}
 
+	// The game told us that the controller currently points at the camera (see cellGemSetYaw)
+	if (std::exchange(pad->move_data.orientation_reset_requested, false))
+	{
+		device->reset_orientation();
+		pad->move_data.quaternion = ps_move_data::default_quaternion;
+		return;
+	}
+
 	if (!pad->move_data.orientation_enabled || pad->get_orientation_reset_button_active())
 	{
 		// This can be called extensively in quick succession, so let's just reset the pointer instead of creating a new object.
@@ -1016,15 +1024,43 @@ void PadHandlerBase::get_orientation(const pad_ensemble& binding) const
 	device->update_orientation(pad->move_data);
 }
 
+static void set_fusion_settings(FusionAhrs* ahrs, f32 sample_rate, bool drift_correction)
+{
+	FusionAhrsSettings settings = fusionAhrsDefaultSettings;
+	settings.sampleRate = sample_rate;
+	settings.convention = FusionConvention::FusionConventionEnu;
+
+	if (drift_correction)
+	{
+		// Continuously pull the inclination towards the gravity measured by the accelerometer.
+		// The accelerometer is ignored while the device is accelerated (e.g. swung), unless that lasts longer than the rejection timeout.
+		settings.gain = 0.5f;
+		settings.accelerationRejection = 10.0f; // degrees
+		settings.magneticRejection = 10.0f;     // degrees
+		settings.rejectionTimeout = 5.0f;       // seconds
+	}
+	else
+	{
+		// Only use the accelerometer during the startup period. Afterwards we only integrate the gyro.
+		settings.gain = 0.0f;
+	}
+
+	FusionAhrsSetSettings(ahrs, &settings);
+}
+
 void PadDevice::reset_orientation()
 {
 	// Initialize Fusion
 	ahrs = std::make_shared<FusionAhrs>();
 	FusionAhrsInitialise(ahrs.get());
-	ahrs->settings.convention = FusionConvention::FusionConventionEnu;
-	ahrs->settings.gain = 0.0f; // If gain is set, the algorithm tries to adjust the orientation over time.
-	FusionAhrsSetSettings(ahrs.get(), &ahrs->settings);
-	FusionAhrsReset(ahrs.get());
+
+	ahrs_sample_rate = fusionAhrsDefaultSettings.sampleRate;
+	ahrs_measured_sample_rate = 0.0f;
+	set_fusion_settings(ahrs.get(), ahrs_sample_rate, ahrs_drift_correction);
+
+	// Start measuring the sample period from scratch and discard samples from before the reset
+	last_ahrs_update_time_us = 0;
+	imu_sample_count = 0;
 }
 
 void PadDevice::update_orientation(ps_move_data& move_data)
@@ -1034,52 +1070,141 @@ void PadDevice::update_orientation(ps_move_data& move_data)
 		reset_orientation();
 	}
 
-	// Get elapsed time since last update
-	const u64 now_us = get_system_time();
-	const f32 elapsed_sec = (last_ahrs_update_time_us == 0) ? 0.0f : ((now_us - last_ahrs_update_time_us) / 1'000'000.0f);
-	last_ahrs_update_time_us = now_us;
+	if (!queues_imu_samples)
+	{
+		// Use the current sensor values and the elapsed time since the last update
+		const u64 now_us = get_system_time();
+		const f32 elapsed_sec = (last_ahrs_update_time_us == 0) ? 0.0f : ((now_us - last_ahrs_update_time_us) / 1'000'000.0f);
+		last_ahrs_update_time_us = now_us;
 
-	// The ps move handler's axis may differ from the Fusion axis, so we have to map them correctly.
-	// Don't ask how the axis work. It's basically been trial and error.
-	ensure(ahrs->settings.convention == FusionConvention::FusionConventionEnu); // East-North-Up
+		// We need a valid sample period. Skip the first update after a reset.
+		if (elapsed_sec > 0.0f)
+		{
+			imu_samples[0] = { move_data.accelerometer, move_data.gyro };
+			imu_sample_count = 1;
+			imu_sample_delta_time = elapsed_sec;
+		}
+	}
+
+	// Feed each queued sample to the AHRS
+	const u32 sample_count = std::exchange(imu_sample_count, 0);
+	f32 elapsed_sec = 0.0f;
+
+	for (u32 i = 0; i < sample_count; i++)
+	{
+		if (update_ahrs(move_data, ::at32(imu_samples, i), imu_sample_delta_time))
+		{
+			elapsed_sec += imu_sample_delta_time;
+		}
+	}
+
+	if (elapsed_sec > 0.0f)
+	{
+		move_data.update_orientation(elapsed_sec);
+	}
+}
+
+bool PadDevice::update_ahrs(ps_move_data& move_data, const imu_sample& sample, f32 elapsed_sec)
+{
+	if (!ahrs || !(elapsed_sec > 0.0f))
+	{
+		return false;
+	}
+
+	const ps_move_data::vect<3>& accel = sample.accelerometer;
+	const ps_move_data::vect<3>& gyro = sample.gyro;
+
+	// The sensor data in move_data uses the following device frame (see set_raw_orientation and the PS Move handler):
+	//   x: right, y: forward (towards the sphere), z: up (buttons)
+	// The accelerometer and gyro share this frame.
+	// Fusion uses East-North-Up, so we can feed it the device frame as is. The identity orientation is then "flat, pointing forward",
+	// and the accelerometer measures +1g on the z axis at rest, which is what Fusion expects as gravity reference.
+	ensure(ahrs->convention == FusionConvention::FusionConventionEnu); // East-North-Up
 
 	const FusionVector accelerometer{
 		.axis {
-			.x = -move_data.accelerometer.x(),
-			.y = +move_data.accelerometer.y(),
-			.z = +move_data.accelerometer.z()
+			.x = accel.x(),
+			.y = accel.y(),
+			.z = accel.z()
 		}
 	};
 
-	const FusionVector gyroscope{
+	FusionVector gyroscope{
 		.axis {
-			.x = +PadHandlerBase::rad_to_degree(move_data.gyro.x()),
-			.y = +PadHandlerBase::rad_to_degree(move_data.gyro.z()),
-			.z = -PadHandlerBase::rad_to_degree(move_data.gyro.y())
+			.x = PadHandlerBase::rad_to_degree(gyro.x()),
+			.y = PadHandlerBase::rad_to_degree(gyro.y()),
+			.z = PadHandlerBase::rad_to_degree(gyro.z())
 		}
 	};
 
-	FusionVector magnetometer {};
-
-	if (move_data.magnetometer_enabled)
+	if (!std::isfinite(gyroscope.axis.x) || !std::isfinite(gyroscope.axis.y) || !std::isfinite(gyroscope.axis.z))
 	{
-		magnetometer = FusionVector{
-			.axis {
-				.x = move_data.magnetometer.x(),
-				.y = move_data.magnetometer.y(),
-				.z = move_data.magnetometer.z()
-			}
-		};
+		return false;
 	}
 
-	// Update Fusion
-	FusionAhrsUpdate(ahrs.get(), gyroscope, accelerometer, magnetometer, elapsed_sec);
+	if (ahrs_drift_correction && !gyro_bias_initialized)
+	{
+		FusionBiasInitialise(&gyro_bias);
+		gyro_bias_initialized = true;
+	}
+
+	// Keep a backup in case the update yields an invalid orientation (e.g. due to garbage sensor data)
+	const FusionAhrs ahrs_backup = *ahrs;
+	const FusionBias gyro_bias_backup = gyro_bias;
+
+	// The startup gain ramp and the rejection timeout are calculated per sample, so the settings have to match the actual sample rate.
+	// Otherwise the startup period would depend on how often we get here.
+	// Applying the settings also resets the internal rejection state, so we only do it if the sample rate changed noticeably.
+	const f32 sample_rate = 1.0f / elapsed_sec;
+	ahrs_measured_sample_rate = (ahrs_measured_sample_rate > 0.0f) ? (ahrs_measured_sample_rate * 0.9f + sample_rate * 0.1f) : sample_rate;
+
+	if (std::abs(ahrs_measured_sample_rate - ahrs_sample_rate) > ahrs_sample_rate * 0.25f)
+	{
+		ahrs_sample_rate = ahrs_measured_sample_rate;
+		set_fusion_settings(ahrs.get(), ahrs_sample_rate, ahrs_drift_correction);
+	}
+
+	// Remove the gyro offset. The offset is learned while the device is stationary.
+	// The stationary period and the filter are also calculated per sample, so the settings have to match the sample rate as well.
+	if (ahrs_drift_correction)
+	{
+		if (gyro_bias.settings.sampleRate != ahrs_sample_rate)
+		{
+			FusionBiasSettings bias_settings = fusionBiasDefaultSettings;
+			bias_settings.sampleRate = ahrs_sample_rate;
+			bias_settings.stationaryThreshold = 10.0f;
+			FusionBiasSetSettings(&gyro_bias, &bias_settings);
+		}
+
+		gyroscope = FusionBiasUpdate(&gyro_bias, gyroscope);
+	}
+
+	// Update Fusion.
+	// We don't use the magnetometer. It would need a proper calibration and would make the heading absolute instead of relative to the calibration pose.
+	// Note: FusionAhrsUpdateNoMagnetometer would also lock the heading during the startup period, so we pass a zero vector instead.
+	FusionAhrsSetSamplePeriod(ahrs.get(), elapsed_sec);
+	FusionAhrsUpdate(ahrs.get(), gyroscope, accelerometer, FusionVector{});
 
 	// Get quaternion
 	const FusionQuaternion quaternion = FusionAhrsGetQuaternion(ahrs.get());
-	move_data.quaternion[0] = quaternion.array[1];
-	move_data.quaternion[1] = quaternion.array[2];
-	move_data.quaternion[2] = quaternion.array[3];
-	move_data.quaternion[3] = quaternion.array[0];
-	move_data.update_orientation(elapsed_sec);
+
+	if (!std::isfinite(quaternion.array[0]) || !std::isfinite(quaternion.array[1]) ||
+		!std::isfinite(quaternion.array[2]) || !std::isfinite(quaternion.array[3]))
+	{
+		// Discard this update and keep the last valid orientation
+		*ahrs = ahrs_backup;
+		gyro_bias = gyro_bias_backup;
+		return false;
+	}
+
+	// Convert the quaternion from the device frame (x: right, y: forward, z: up) to the cellGem frame (x: right, y: up, z: backward).
+	// The cellGem identity orientation is "facing the camera with buttons up", which is the same pose as our "flat, pointing forward".
+	// The change of basis is a proper rotation C with (x, y, z) -> (x, z, -y), so q' = C * q * C^-1 = (w, C * v).
+	// This is the same transform that ps move api uses for its OpenGL sensor basis.
+	move_data.quaternion[0] = quaternion.array[1];  // x =  x
+	move_data.quaternion[1] = quaternion.array[3];  // y =  z
+	move_data.quaternion[2] = -quaternion.array[2]; // z = -y
+	move_data.quaternion[3] = quaternion.array[0];  // w
+
+	return true;
 }

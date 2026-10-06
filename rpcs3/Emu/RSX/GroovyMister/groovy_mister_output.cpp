@@ -2,7 +2,7 @@
 #include "groovy_mister_output.h"
 #include "Emu/system_config.h"
 #include "Emu/IdManager.h"
-#include "Emu/RSX/rsx_utils.h"
+#include "Emu/RSX/Utils/rsx_utils.h"
 #include "Emu/Cell/Modules/cellVideoOut.h"
 
 #include "groovymister_wrapper.h"

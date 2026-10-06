@@ -6,7 +6,7 @@
 #include "vkutils/image.h"
 #include "vkutils/memory.h"
 #include "vkutils/device.h"
-#include "Emu/RSX/rsx_utils.h"
+#include "Emu/RSX/Utils/rsx_utils.h"
 
 #include "util/logs.hpp"
 #include "util/asm.hpp" // utils::align
@@ -228,7 +228,9 @@ namespace vk_groovy_mister
 			// VKTexture.cpp). We must NOT push/pop or change_layout these
 			// images ourselves around it — double layout management corrupts
 			// the layout/barrier tracking and produces an invalid GPU stream.
-			vk::copy_scaled_image(cmd, src, m_scratch_image.get(), src_content, dst_active, 1,
+			// {} = one mip from level 0, one layer: what the old mipmaps=1 argument meant
+			// before upstream replaced it with rsx::image_copy_subresource_layers.
+			vk::copy_scaled_image(cmd, src, m_scratch_image.get(), src_content, dst_active, {},
 				/*compatible_formats=*/false, VK_FILTER_LINEAR);
 
 			// copy_scaled_image popped the scratch image back to its prior

@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="groovymister.h" />
+    <ClInclude Include="groovymister_wrapper.h" />
+    <ClInclude Include="nlc_codec.h" />
+    <ClInclude Include="rio.h" />
+    <ClInclude Include="lz4\lz4.h" />
+    <ClInclude Include="lz4\lz4hc.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="groovymister.cpp" />
+    <ClCompile Include="groovymister_wrapper.cpp" />
+    <ClCompile Include="nlc_codec.cpp" />
+    <ClCompile Include="lz4\lz4.c" />
+    <ClCompile Include="lz4\lz4hc.c" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <RootNamespace>groovy_mister</RootNamespace>
+    <ProjectGuid>{6A1F3E2D-9B4C-4E7A-8D2F-1C5B0A9E7D31}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(SolutionDir)\buildfiles\msvc\common_default.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(SolutionDir)\buildfiles\msvc\common_default_macros.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)build\lib\$(Configuration)-$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)build\tmp\$(ProjectName)-$(Configuration)-$(Platform)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)build\lib\$(Configuration)-$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)build\tmp\$(ProjectName)-$(Configuration)-$(Platform)\</IntDir>
+  </PropertyGroup>
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(SolutionDir)\buildfiles\msvc\rpcs3_default.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(SolutionDir)\buildfiles\msvc\rpcs3_debug.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(SolutionDir)\buildfiles\msvc\rpcs3_release.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <AdditionalIncludeDirectories>.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>GROOVYMISTER_WIN32_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

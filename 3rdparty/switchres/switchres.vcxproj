@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="switchres.h" />
+    <ClInclude Include="monitor.h" />
+    <ClInclude Include="modeline.h" />
+    <ClInclude Include="display.h" />
+    <ClInclude Include="custom_video.h" />
+    <ClInclude Include="log.h" />
+    <ClInclude Include="edid.h" />
+    <ClInclude Include="switchres_wrapper.h" />
+    <ClInclude Include="switchres_defines.h" />
+    <ClInclude Include="font.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="switchres.cpp" />
+    <ClCompile Include="monitor.cpp" />
+    <ClCompile Include="modeline.cpp" />
+    <ClCompile Include="display.cpp" />
+    <ClCompile Include="custom_video.cpp" />
+    <ClCompile Include="log.cpp" />
+    <ClCompile Include="edid.cpp" />
+    <ClCompile Include="switchres_wrapper.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <RootNamespace>switchres</RootNamespace>
+    <ProjectGuid>{8E2C4B6A-1D3F-4A5E-9C7B-2F4D6E8A0B13}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(SolutionDir)\buildfiles\msvc\common_default.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(SolutionDir)\buildfiles\msvc\common_default_macros.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)build\lib\$(Configuration)-$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)build\tmp\$(ProjectName)-$(Configuration)-$(Platform)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)build\lib\$(Configuration)-$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)build\tmp\$(ProjectName)-$(Configuration)-$(Platform)\</IntDir>
+  </PropertyGroup>
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(SolutionDir)\buildfiles\msvc\rpcs3_default.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(SolutionDir)\buildfiles\msvc\rpcs3_debug.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(SolutionDir)\buildfiles\msvc\rpcs3_release.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <AdditionalIncludeDirectories>.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SR_CALC_ONLY;SR_WIN32_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -57,6 +57,7 @@
     <ClInclude Include="Emu\RSX\GL\GLPipelineCompiler.h" />
     <ClInclude Include="Emu\RSX\GL\GLCommonDecompiler.h" />
     <ClInclude Include="Emu\RSX\GL\GLFragmentProgram.h" />
+    <ClInclude Include="Emu\RSX\GL\GLGroovyMisterOutput.h" />
     <ClInclude Include="Emu\RSX\GL\GLGSRender.h" />
     <ClInclude Include="Emu\RSX\GL\GLProcTable.h" />
     <ClInclude Include="Emu\RSX\GL\GLProgramBuffer.h" />
@@ -95,6 +96,7 @@
     <ClCompile Include="Emu\RSX\GL\GLDMA.cpp" />
     <ClCompile Include="Emu\RSX\GL\GLDraw.cpp" />
     <ClCompile Include="Emu\RSX\GL\GLFragmentProgram.cpp" />
+    <ClCompile Include="Emu\RSX\GL\GLGroovyMisterOutput.cpp" />
     <ClCompile Include="Emu\RSX\GL\GLGSRender.cpp" />
     <ClCompile Include="Emu\RSX\GL\GLOverlays.cpp" />
     <ClCompile Include="Emu\RSX\GL\GLPipelineCompiler.cpp" />

@@ -24,6 +24,7 @@
     <ClInclude Include="Emu\RSX\VK\VKFormats.h" />
     <ClInclude Include="Emu\RSX\VK\VKFragmentProgram.h" />
     <ClInclude Include="Emu\RSX\VK\VKFramebuffer.h" />
+    <ClInclude Include="Emu\RSX\VK\VKGroovyMisterOutput.h" />
     <ClInclude Include="Emu\RSX\VK\VKGSRender.h" />
     <ClInclude Include="Emu\RSX\VK\VKGSRenderTypes.hpp" />
     <ClInclude Include="Emu\RSX\VK\VKHelpers.h" />
@@ -84,6 +85,7 @@
     <ClCompile Include="Emu\RSX\VK\VKFormats.cpp" />
     <ClCompile Include="Emu\RSX\VK\VKFragmentProgram.cpp" />
     <ClCompile Include="Emu\RSX\VK\VKFramebuffer.cpp" />
+    <ClCompile Include="Emu\RSX\VK\VKGroovyMisterOutput.cpp" />
     <ClCompile Include="Emu\RSX\VK\VKGSRender.cpp" />
     <ClCompile Include="Emu\RSX\VK\VKHelpers.cpp" />
     <ClCompile Include="Emu\RSX\VK\VKOverlays.cpp" />

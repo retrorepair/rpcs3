@@ -40,10 +40,10 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>..\3rdparty\miniupnp\miniupnp\miniupnpc\include;..\3rdparty\wolfssl\wolfssl;$(SolutionDir)build\lib\$(Configuration)-$(Platform)\protobuf_build\include;..\3rdparty\libusb\libusb\libusb;..\3rdparty\yaml-cpp\yaml-cpp\include;..\3rdparty\SoundTouch\soundtouch\include;..\3rdparty\rtmidi\rtmidi;..\3rdparty\zlib\zlib;$(SolutionDir)build\lib\$(Configuration)-$(Platform)\llvm_build\include;$(SolutionDir)build\lib_ext\$(Configuration)-$(Platform)\llvm_build\include;$(SolutionDir)build\lib_ext\$(Configuration)-$(Platform)\llvm\include;$(SolutionDir)build\lib_ext\$(Configuration)-$(Platform)\llvm_build\include;$(VULKAN_SDK)\Include;..\3rdparty\zstd\zstd\lib;$(SolutionDir)3rdparty\fusion\fusion\Fusion;$(SolutionDir)3rdparty\wolfssl\extra\win32;$(SolutionDir)3rdparty\libsdl-org\SDL\include;$(SolutionDir)3rdparty\glslang\glslang;$(SolutionDir)3rdparty\curl\curl\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\3rdparty\miniupnp\miniupnp\miniupnpc\include;..\3rdparty\wolfssl\wolfssl;$(SolutionDir)build\lib\$(Configuration)-$(Platform)\protobuf_build\include;..\3rdparty\libusb\libusb\libusb;..\3rdparty\yaml-cpp\yaml-cpp\include;..\3rdparty\SoundTouch\soundtouch\include;..\3rdparty\rtmidi\rtmidi;..\3rdparty\zlib\zlib;$(SolutionDir)build\lib\$(Configuration)-$(Platform)\llvm_build\include;$(SolutionDir)build\lib_ext\$(Configuration)-$(Platform)\llvm_build\include;$(SolutionDir)build\lib_ext\$(Configuration)-$(Platform)\llvm\include;$(SolutionDir)build\lib_ext\$(Configuration)-$(Platform)\llvm_build\include;$(VULKAN_SDK)\Include;..\3rdparty\zstd\zstd\lib;$(SolutionDir)3rdparty\fusion\fusion\Fusion;$(SolutionDir)3rdparty\wolfssl\extra\win32;$(SolutionDir)3rdparty\libsdl-org\SDL\include;$(SolutionDir)3rdparty\glslang\glslang;$(SolutionDir)3rdparty\curl\curl\include;$(SolutionDir)3rdparty\groovy_mister;$(SolutionDir)3rdparty\switchres</AdditionalIncludeDirectories>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AL_LIBTYPE_STATIC;MINIUPNP_STATICLIB;HAVE_VULKAN;HAVE_SDL3;ZLIB_CONST;WOLFSSL_USER_SETTINGS;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AL_LIBTYPE_STATIC;MINIUPNP_STATICLIB;HAVE_VULKAN;HAVE_SDL3;ZLIB_CONST;WOLFSSL_USER_SETTINGS;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AL_LIBTYPE_STATIC;MINIUPNP_STATICLIB;HAVE_VULKAN;HAVE_SDL3;ZLIB_CONST;WOLFSSL_USER_SETTINGS;CURL_STATICLIB;GROOVYMISTER_WIN32_STATIC;SR_CALC_ONLY;SR_WIN32_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AL_LIBTYPE_STATIC;MINIUPNP_STATICLIB;HAVE_VULKAN;HAVE_SDL3;ZLIB_CONST;WOLFSSL_USER_SETTINGS;CURL_STATICLIB;GROOVYMISTER_WIN32_STATIC;SR_CALC_ONLY;SR_WIN32_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(EnableLibUsbWindowsHotplug)' == 'true'">LIBUSB_WINDOWS_HOTPLUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalModuleDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalModuleDependencies)</AdditionalModuleDependencies>
       <AdditionalModuleDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalModuleDependencies)</AdditionalModuleDependencies>
@@ -561,6 +561,7 @@
     <ClCompile Include="Emu\Cell\SPUThread.cpp" />
     <ClCompile Include="Emu\CPU\CPUThread.cpp" />
     <ClCompile Include="Emu\VFS.cpp" />
+    <ClCompile Include="Emu\RSX\GroovyMister\groovy_mister_output.cpp" />
     <ClCompile Include="Emu\RSX\GSRender.cpp" />
     <ClCompile Include="Emu\RSX\RSXTexture.cpp" />
     <ClCompile Include="Emu\RSX\RSXThread.cpp" />
@@ -1067,6 +1068,8 @@
     <ClInclude Include="Emu\RSX\Common\TextureUtils.h" />
     <ClInclude Include="Emu\RSX\Program\VertexProgramDecompiler.h" />
     <ClInclude Include="Emu\RSX\GCM.h" />
+    <ClInclude Include="Emu\RSX\GroovyMister\groovy_mister_output.h" />
+    <ClInclude Include="Emu\RSX\GroovyMister\groovy_mister_modeline.h" />
     <ClInclude Include="Emu\RSX\GSRender.h" />
     <ClInclude Include="Emu\RSX\Null\NullGSRender.h" />
     <ClInclude Include="Emu\RSX\Program\RSXFragmentProgram.h" />

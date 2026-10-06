@@ -2268,6 +2268,18 @@
                </layout>
               </widget>
              </item>
+             <item row="3" column="2">
+              <widget class="QGroupBox" name="gb_usio_emulated">
+               <property name="title">
+                <string>USIO Emulated Mode</string>
+               </property>
+               <layout class="QVBoxLayout" name="gb_usio_emulated_layout">
+                <item>
+                 <widget class="QComboBox" name="usioBox"/>
+                </item>
+               </layout>
+              </widget>
+             </item>
              <item row="2" column="0">
               <widget class="QGroupBox" name="gb_move_handler">
                <property name="title">
@@ -2388,7 +2400,7 @@
                </layout>
               </widget>
              </item>
-             <item row="3" column="2">
+             <item row="4" column="2">
               <widget class="QGroupBox" name="gb_midi_1">
                <property name="title">
                 <string>Emulated MIDI Device 1</string>
@@ -2407,7 +2419,7 @@
                </layout>
               </widget>
              </item>
-             <item row="5" column="2">
+             <item row="6" column="2">
               <widget class="QGroupBox" name="gb_midi_3">
                <property name="title">
                 <string>Emulated MIDI Device 3</string>
@@ -2426,7 +2438,7 @@
                </layout>
               </widget>
              </item>
-             <item row="4" column="2">
+             <item row="5" column="2">
               <widget class="QGroupBox" name="gb_midi_2">
                <property name="title">
                 <string>Emulated MIDI Device 2</string>
@@ -3165,6 +3177,13 @@
                    <widget class="QCheckBox" name="emulateHddSpeed">
                     <property name="text">
                      <string>Emulate HDD Read Speed</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QCheckBox" name="emulateBdvdSpeed">
+                    <property name="text">
+                     <string>Emulate BD-ROM Read Speed</string>
                     </property>
                    </widget>
                   </item>
